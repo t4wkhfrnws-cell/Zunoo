@@ -3,20 +3,14 @@
 
    Milestone 2: The Moving Engine.
    Working features:
-     - Bottom tab-bar navigation                       (v2-v3)
-     - Chatbot: type a question, get a cited answer    (v4)
-     - Answer sections expand / collapse               (v5)
-     - Suggested-question chips                        (v5)
-     - Condition selector sets context                 (v5)
-     - Safety guardrail for diagnosis / dosing requests (v5)
+     - Bottom tab-bar navigation                        (v2-v3)
+     - Chatbot: cited answers, sections, chips,
+       condition context, safety guardrail              (v4-v5)
+     - Providers, Pharmacy, Trials and Resources tabs:
+       data-driven lists with search and filters        (v6)
 
-   RESERVED HTML IDs — do not rename these:
-     tabs:    tab-chatbot, tab-providers, tab-pharmacy, tab-trials,
-              tab-resources
-     screens: screen-chatbot, screen-providers, screen-pharmacy,
-              screen-trials, screen-resources
-     chat:    chat-stream, chat-input, chat-send, condition-select,
-              suggested-prompts
+   RESERVED HTML IDs — do not rename these. The JavaScript attaches
+   event listeners and writes content to them.
 
    The medical content below is educational reference information only.
    It is not medical advice and does not diagnose or prescribe.
@@ -31,7 +25,6 @@
   var tabs = document.querySelectorAll(".tab");
   var screens = document.querySelectorAll(".screen");
 
-  /* Show one screen, hide the rest, and highlight the matching tab. */
   function showScreen(targetId) {
     screens.forEach(function (screen) {
       screen.classList.toggle("active", screen.id === targetId);
@@ -54,8 +47,91 @@
   showScreen("screen-chatbot");
 
   /* ========================================================
-     2. CONDITION KNOWLEDGE BASE
-     Curated, clinician-grade reference information.
+     2. SHARED HELPERS
+     ======================================================== */
+  /* Escape user-typed text before placing it in the page. */
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  /* Phone number -> tel: link. */
+  function telHref(phone) {
+    return "tel:" + String(phone).replace(/[^0-9+]/g, "");
+  }
+
+  /* Address -> an OpenStreetMap search link for directions. */
+  function mapsHref(address) {
+    return "https://www.openstreetmap.org/search?query=" + encodeURIComponent(address);
+  }
+
+  var ICON_PATHS = {
+    pin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/>',
+    phone:
+      '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
+    star: '<path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 6.9L12 18.8 5.9 21l1.2-6.9-5-4.9 6.9-1z"/>',
+    clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+    pill: '<path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/>',
+    flask: '<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M7 15h10"/>',
+    search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+    info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+  };
+
+  /* Small inline icon (16px) used inside cards. */
+  function icon(name) {
+    return (
+      '<svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">' +
+      (ICON_PATHS[name] || "") +
+      "</svg>"
+    );
+  }
+
+  /* Friendly "nothing found" block. */
+  function emptyState(iconName, title, message) {
+    return (
+      '<div class="empty-state">' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+      (ICON_PATHS[iconName] || "") +
+      "</svg>" +
+      "<h3>" +
+      escapeHtml(title) +
+      "</h3><p>" +
+      escapeHtml(message) +
+      "</p></div>"
+    );
+  }
+
+  /* Fill a <select> with options built from a list of values. */
+  function fillSelect(selectEl, values) {
+    for (var i = 0; i < values.length; i++) {
+      var option = document.createElement("option");
+      option.value = values[i];
+      option.textContent = values[i];
+      selectEl.appendChild(option);
+    }
+  }
+
+  /* Unique, sorted values of one field across a list of objects. */
+  function uniqueField(list, field) {
+    var seen = {};
+    var out = [];
+    for (var i = 0; i < list.length; i++) {
+      var v = list[i][field];
+      if (v && !seen[v]) {
+        seen[v] = true;
+        out.push(v);
+      }
+    }
+    out.sort();
+    return out;
+  }
+
+  /* ========================================================
+     3. CONDITION KNOWLEDGE BASE
      ======================================================== */
   var CONDITIONS = [
     {
@@ -407,7 +483,7 @@
   ];
 
   /* ========================================================
-     3. CHATBOT
+     4. CHATBOT
      ======================================================== */
   var SECTION_ICONS = {
     symptoms: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
@@ -423,22 +499,8 @@
   var chatSend = document.getElementById("chat-send");
   var conditionSelect = document.getElementById("condition-select");
   var suggestedPrompts = document.getElementById("suggested-prompts");
-
-  /* The condition chosen in the dropdown, used as context when the typed
-     question does not name a condition on its own. */
   var selectedCondition = null;
 
-  /* Escape user-typed text before placing it in the page. */
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-  }
-
-  /* Lower-case and strip punctuation for matching. */
   function normalize(str) {
     return String(str)
       .toLowerCase()
@@ -447,7 +509,6 @@
       .trim();
   }
 
-  /* Match a typed question to a condition. Returns { condition, score }. */
   function findCondition(query) {
     var q = normalize(query);
     if (!q) return null;
@@ -481,8 +542,6 @@
     return best;
   }
 
-  /* Phrases that ask Zuuno to diagnose or to give personal dosing —
-     these are refused for safety (the app educates, it does not advise). */
   var UNSAFE_PHRASES = [
     "do i have",
     "do you think i have",
@@ -516,7 +575,6 @@
     return false;
   }
 
-  /* Build a bulleted list. Content comes from the trusted knowledge base. */
   function bulletList(items) {
     var html = '<ul class="bullets">';
     for (var i = 0; i < items.length; i++) {
@@ -525,8 +583,7 @@
     return html + "</ul>";
   }
 
-  /* Build one collapsible answer section (rendered open). */
-  function section(iconKey, title, bodyHtml) {
+  function chatSection(iconKey, title, bodyHtml) {
     return (
       '<div class="acc acc-open">' +
       '<button class="acc-head" type="button" aria-expanded="true">' +
@@ -544,7 +601,6 @@
     );
   }
 
-  /* Build a full structured answer card for a matched condition. */
   function answerCard(condition, score) {
     var pct = Math.round(score * 100);
     var medsBody =
@@ -571,14 +627,14 @@
       condition.summary +
       "</p></div>" +
       '<div class="answer-sections">' +
-      section("symptoms", "Symptoms &amp; Signs", bulletList(condition.symptoms)) +
-      section("medications", "Medications", medsBody) +
-      section(
+      chatSection("symptoms", "Symptoms &amp; Signs", bulletList(condition.symptoms)) +
+      chatSection("medications", "Medications", medsBody) +
+      chatSection(
         "prognosis",
         "Prognosis",
         '<p class="answer-summary" style="margin-top:0">' + condition.prognosis + "</p>",
       ) +
-      section(
+      chatSection(
         "citations",
         "Citations (" + condition.citations.length + ")",
         bulletList(condition.citations),
@@ -587,7 +643,6 @@
     );
   }
 
-  /* Build the response shown when no condition is recognized. */
   function noMatchCard() {
     return (
       '<article class="answer-card">' +
@@ -602,7 +657,6 @@
     );
   }
 
-  /* Build the safety response shown for diagnosis or dosing requests. */
   function guardrailCard(query) {
     var match = findCondition(query);
     var hint = match
@@ -625,7 +679,6 @@
     );
   }
 
-  /* Decide which response a message should receive. */
   function respondTo(text) {
     if (isUnsafeQuery(text)) {
       return guardrailCard(text);
@@ -637,23 +690,18 @@
     return match ? answerCard(match.condition, match.score) : noMatchCard();
   }
 
-  /* Add a question and its answer to the chat. */
   function sendMessage(text) {
     text = String(text).trim();
     if (!text) return;
-
     chatStream.insertAdjacentHTML(
       "beforeend",
       '<div class="msg-user">' + escapeHtml(text) + "</div>",
     );
     var userMessage = chatStream.lastElementChild;
-
     chatStream.insertAdjacentHTML("beforeend", respondTo(text));
-
     userMessage.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  /* Send whatever is typed in the input box. */
   function handleSend() {
     var text = chatInput.value.trim();
     if (!text) return;
@@ -664,16 +712,12 @@
 
   if (chatStream && chatInput && chatSend) {
     chatSend.addEventListener("click", handleSend);
-
     chatInput.addEventListener("keydown", function (e) {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         handleSend();
       }
     });
-
-    /* A3 — expand / collapse an answer section when its header is clicked.
-       Event delegation covers answer cards added later. */
     chatStream.addEventListener("click", function (e) {
       var head = e.target.closest(".acc-head");
       if (!head || !chatStream.contains(head)) return;
@@ -684,16 +728,13 @@
     });
   }
 
-  /* A4 — suggested-question chips ask their question when clicked. */
   if (suggestedPrompts) {
     suggestedPrompts.addEventListener("click", function (e) {
       var chip = e.target.closest(".suggest-chip");
-      if (!chip) return;
-      sendMessage(chip.textContent);
+      if (chip) sendMessage(chip.textContent);
     });
   }
 
-  /* A5 — fill the condition dropdown and track the chosen condition. */
   if (conditionSelect) {
     for (var c = 0; c < CONDITIONS.length; c++) {
       var option = document.createElement("option");
@@ -706,4 +747,601 @@
       selectedCondition = value === "" ? null : CONDITIONS[Number(value)];
     });
   }
+
+  /* ========================================================
+     5. PROVIDERS TAB
+     ======================================================== */
+  var PROVIDERS = [
+    { id: "p1", name: "Dr. Elena Marquez, MD", specialty: "Rheumatology", city: "New York, NY", distanceMi: 2.4, telehealth: true, acceptingNew: true, address: "425 Madison Ave, New York, NY 10017", phone: "(212) 555-0143" },
+    { id: "p2", name: "Dr. David Chen, MD", specialty: "Endocrinology", city: "New York, NY", distanceMi: 9.6, telehealth: true, acceptingNew: true, address: "52 E 72nd St, New York, NY 10021", phone: "(212) 555-0188" },
+    { id: "p3", name: "Dr. Aisha Bello, MD", specialty: "Neurology", city: "New York, NY", distanceMi: 18.3, telehealth: false, acceptingNew: false, address: "1176 5th Ave, New York, NY 10029", phone: "(212) 555-0207" },
+    { id: "p4", name: "Dr. Margaret O'Sullivan, MD", specialty: "Rheumatology", city: "Boston, MA", distanceMi: 1.9, telehealth: true, acceptingNew: true, address: "75 Francis St, Boston, MA 02115", phone: "(617) 555-0112" },
+    { id: "p5", name: "Dr. James Whitfield, MD", specialty: "Neurology", city: "Boston, MA", distanceMi: 12.7, telehealth: true, acceptingNew: true, address: "55 Fruit St, Boston, MA 02114", phone: "(617) 555-0148" },
+    { id: "p6", name: "Dr. Sofia Russo, DO", specialty: "Pulmonology", city: "Boston, MA", distanceMi: 31.5, telehealth: false, acceptingNew: true, address: "330 Brookline Ave, Boston, MA 02215", phone: "(617) 555-0173" },
+    { id: "p7", name: "Dr. William Carter, MD", specialty: "Cardiology", city: "Chicago, IL", distanceMi: 3.1, telehealth: true, acceptingNew: true, address: "251 E Huron St, Chicago, IL 60611", phone: "(312) 555-0121" },
+    { id: "p8", name: "Dr. Grace Park, MD", specialty: "Gastroenterology", city: "Chicago, IL", distanceMi: 22.0, telehealth: false, acceptingNew: true, address: "1725 W Harrison St, Chicago, IL 60612", phone: "(312) 555-0179" },
+  ];
+
+  var providerList = document.getElementById("provider-list");
+  var providerMeta = document.getElementById("provider-meta");
+  var providerLocation = document.getElementById("provider-location");
+  var providerRadius = document.getElementById("provider-radius");
+  var providerFilterBtn = document.getElementById("provider-filter-btn");
+  var providerFilters = document.getElementById("provider-filters");
+  var providerSpecialty = document.getElementById("provider-specialty");
+  var providerTelehealth = document.getElementById("provider-telehealth");
+  var providerAccepting = document.getElementById("provider-accepting");
+
+  var providerState = {
+    location: "all",
+    radius: 50,
+    specialty: "all",
+    telehealthOnly: false,
+    acceptingOnly: false,
+  };
+  var savedProviders = {};
+
+  function providerCard(p) {
+    var saved = savedProviders[p.id] === true;
+    return (
+      '<article class="card result-card">' +
+      '<div class="result-top"><div>' +
+      '<h3 class="result-name">' +
+      escapeHtml(p.name) +
+      "</h3>" +
+      '<p class="result-sub">' +
+      escapeHtml(p.specialty) +
+      " · " +
+      escapeHtml(p.city) +
+      "</p></div>" +
+      '<button class="star-btn' +
+      (saved ? " on" : "") +
+      '" type="button" data-action="save-provider" data-id="' +
+      p.id +
+      '" aria-pressed="' +
+      saved +
+      '" aria-label="Save provider">' +
+      icon("star") +
+      "</button></div>" +
+      '<div class="chip-row">' +
+      '<span class="chip chip-teal">' +
+      p.distanceMi.toFixed(1) +
+      " mi</span>" +
+      (p.telehealth ? '<span class="chip chip-blue">Telehealth</span>' : "") +
+      '<span class="chip ' +
+      (p.acceptingNew ? "chip-green" : "") +
+      '">' +
+      (p.acceptingNew ? "Accepting patients" : "Waitlist only") +
+      "</span></div>" +
+      '<div class="result-rows">' +
+      '<p class="result-row">' +
+      icon("pin") +
+      escapeHtml(p.address) +
+      "</p>" +
+      '<p class="result-row">' +
+      icon("phone") +
+      escapeHtml(p.phone) +
+      "</p></div>" +
+      '<div class="result-actions">' +
+      '<a class="btn btn-primary btn-sm" href="' +
+      telHref(p.phone) +
+      '">Call</a>' +
+      '<a class="btn btn-secondary btn-sm" href="' +
+      mapsHref(p.address) +
+      '" target="_blank" rel="noreferrer">Directions</a>' +
+      "</div></article>"
+    );
+  }
+
+  function renderProviders() {
+    var rows = PROVIDERS.filter(function (p) {
+      if (providerState.location !== "all" && p.city !== providerState.location) return false;
+      if (p.distanceMi > providerState.radius) return false;
+      if (providerState.specialty !== "all" && p.specialty !== providerState.specialty) return false;
+      if (providerState.telehealthOnly && !p.telehealth) return false;
+      if (providerState.acceptingOnly && !p.acceptingNew) return false;
+      return true;
+    });
+    rows.sort(function (a, b) {
+      return a.distanceMi - b.distanceMi;
+    });
+
+    providerMeta.innerHTML =
+      "<span>" + rows.length + " provider" + (rows.length === 1 ? "" : "s") + " found</span>";
+
+    if (rows.length === 0) {
+      providerList.innerHTML = emptyState(
+        "search",
+        "No providers found in your area",
+        "Try expanding your search radius, changing the location, or clearing filters.",
+      );
+      return;
+    }
+    var html = "";
+    for (var i = 0; i < rows.length; i++) html += providerCard(rows[i]);
+    providerList.innerHTML = html;
+  }
+
+  if (providerList) {
+    fillSelect(providerSpecialty, uniqueField(PROVIDERS, "specialty"));
+
+    providerLocation.addEventListener("change", function () {
+      providerState.location = providerLocation.value;
+      renderProviders();
+    });
+    providerRadius.addEventListener("change", function () {
+      providerState.radius = Number(providerRadius.value);
+      renderProviders();
+    });
+    providerFilterBtn.addEventListener("click", function () {
+      providerFilters.classList.toggle("open");
+      providerFilterBtn.classList.toggle("on");
+    });
+    providerSpecialty.addEventListener("change", function () {
+      providerState.specialty = providerSpecialty.value;
+      renderProviders();
+    });
+    providerTelehealth.addEventListener("click", function () {
+      providerState.telehealthOnly = !providerState.telehealthOnly;
+      providerTelehealth.classList.toggle("on", providerState.telehealthOnly);
+      renderProviders();
+    });
+    providerAccepting.addEventListener("click", function () {
+      providerState.acceptingOnly = !providerState.acceptingOnly;
+      providerAccepting.classList.toggle("on", providerState.acceptingOnly);
+      renderProviders();
+    });
+    providerList.addEventListener("click", function (e) {
+      var btn = e.target.closest('[data-action="save-provider"]');
+      if (!btn) return;
+      var id = btn.getAttribute("data-id");
+      savedProviders[id] = !savedProviders[id];
+      renderProviders();
+    });
+  }
+
+  /* ========================================================
+     6. PHARMACY TAB
+     ======================================================== */
+  var PHARMACIES = [
+    { id: "rx1", name: "Midtown Community Pharmacy", chain: "CVS Pharmacy", kind: "retail", distanceMi: 1.1, hours: "Mon–Fri 8 AM–10 PM, Sat–Sun 9 AM–7 PM", phone: "(212) 555-0301", address: "630 Lexington Ave, New York, NY 10022", info: "Prescriptions, immunizations, drive-thru, home delivery" },
+    { id: "rx2", name: "Manhattan Specialty Pharmacy", chain: "Independent", kind: "specialty", distanceMi: 2.6, hours: "Mon–Fri 9 AM–6 PM", phone: "(212) 555-0322", address: "139 E 57th St, New York, NY 10022", info: "Specialty and biologic medications, prior-authorization support" },
+    { id: "rx3", name: "East River Infusion Center", chain: "Independent", kind: "infusion", distanceMi: 3.0, hours: "Mon–Sat 7 AM–7 PM", phone: "(212) 555-0344", address: "530 1st Ave, New York, NY 10016", info: "Infusion specialties: Rheumatology, Neurology, Immunology" },
+    { id: "rx4", name: "Longwood Pharmacy", chain: "Walgreens", kind: "retail", distanceMi: 0.8, hours: "Open 24 hours", phone: "(617) 555-0302", address: "350 Longwood Ave, Boston, MA 02115", info: "Prescriptions, immunizations, 24-hour service" },
+    { id: "rx5", name: "Back Bay Specialty Pharmacy", chain: "Independent", kind: "specialty", distanceMi: 2.2, hours: "Mon–Fri 8:30 AM–6 PM", phone: "(617) 555-0323", address: "800 Boylston St, Boston, MA 02199", info: "Specialty medications, home delivery" },
+    { id: "rx6", name: "Streeterville Pharmacy", chain: "Walgreens", kind: "retail", distanceMi: 1.5, hours: "Mon–Sun 7 AM–11 PM", phone: "(312) 555-0303", address: "300 E Ohio St, Chicago, IL 60611", info: "Prescriptions, immunizations, drive-thru" },
+    { id: "rx7", name: "Express Scripts Mail Pharmacy", chain: "Express Scripts", kind: "online", distanceMi: null, hours: "Phone support 24/7", phone: "(800) 555-0911", address: "Nationwide mail-order service", info: "Mail-order prescriptions, 90-day supplies, automatic refills" },
+  ];
+
+  var PHARMACY_KIND_LABELS = {
+    retail: "Retail pharmacy",
+    specialty: "Specialty pharmacy",
+    infusion: "Infusion center",
+    online: "Online / mail-order",
+  };
+  var PHARMACY_KIND_CHIPS = {
+    retail: "chip",
+    specialty: "chip-blue",
+    infusion: "chip-violet",
+    online: "chip-teal",
+  };
+
+  var pharmacyList = document.getElementById("pharmacy-list");
+  var pharmacyMeta = document.getElementById("pharmacy-meta");
+  var pharmacyKinds = document.getElementById("pharmacy-kinds");
+  var medCheckInput = document.getElementById("med-check-input");
+  var medCheckBtn = document.getElementById("med-check-btn");
+  var medCheckMsg = document.getElementById("med-check-msg");
+  var pharmacyKind = "all";
+
+  function pharmacyCard(p) {
+    return (
+      '<article class="card result-card">' +
+      '<div class="result-top"><div>' +
+      '<h3 class="result-name">' +
+      escapeHtml(p.name) +
+      "</h3>" +
+      '<p class="result-sub">' +
+      escapeHtml(p.chain) +
+      " · " +
+      PHARMACY_KIND_LABELS[p.kind] +
+      "</p></div></div>" +
+      '<div class="chip-row">' +
+      (p.distanceMi != null
+        ? '<span class="chip chip-teal">' + p.distanceMi.toFixed(1) + " mi</span>"
+        : '<span class="chip chip-teal">Ships nationwide</span>') +
+      '<span class="chip ' +
+      PHARMACY_KIND_CHIPS[p.kind] +
+      '">' +
+      PHARMACY_KIND_LABELS[p.kind] +
+      "</span></div>" +
+      '<div class="result-rows">' +
+      '<p class="result-row">' +
+      icon("clock") +
+      escapeHtml(p.hours) +
+      "</p>" +
+      '<p class="result-row">' +
+      icon("phone") +
+      escapeHtml(p.phone) +
+      "</p>" +
+      '<p class="result-row">' +
+      icon("pin") +
+      escapeHtml(p.address) +
+      "</p>" +
+      '<p class="result-row">' +
+      icon("pill") +
+      escapeHtml(p.info) +
+      "</p></div>" +
+      '<div class="result-actions">' +
+      '<a class="btn btn-primary btn-sm" href="' +
+      telHref(p.phone) +
+      '">Call pharmacy</a>' +
+      (p.kind !== "online"
+        ? '<a class="btn btn-secondary btn-sm" href="' +
+          mapsHref(p.address) +
+          '" target="_blank" rel="noreferrer">Directions</a>'
+        : "") +
+      "</div></article>"
+    );
+  }
+
+  function renderPharmacies() {
+    var rows = PHARMACIES.filter(function (p) {
+      return pharmacyKind === "all" || p.kind === pharmacyKind;
+    });
+
+    pharmacyMeta.innerHTML =
+      "<span>" + rows.length + " result" + (rows.length === 1 ? "" : "s") + "</span>";
+
+    if (rows.length === 0) {
+      pharmacyList.innerHTML = emptyState(
+        "pill",
+        "No pharmacies found",
+        "Try a different pharmacy type.",
+      );
+      return;
+    }
+    var html = "";
+    for (var i = 0; i < rows.length; i++) html += pharmacyCard(rows[i]);
+    pharmacyList.innerHTML = html;
+  }
+
+  function runMedCheck() {
+    var value = medCheckInput.value.trim();
+    if (!value) {
+      medCheckMsg.innerHTML = "";
+      return;
+    }
+    medCheckMsg.innerHTML =
+      '<div class="notice">' +
+      icon("info") +
+      "<span>Live stock for <strong>" +
+      escapeHtml(value) +
+      "</strong> is not in our feed yet. Call a pharmacy below to confirm availability — " +
+      "most can also order it or transfer your prescription.</span></div>";
+  }
+
+  if (pharmacyList) {
+    pharmacyKinds.addEventListener("click", function (e) {
+      var pill = e.target.closest("[data-kind]");
+      if (!pill) return;
+      pharmacyKind = pill.getAttribute("data-kind");
+      var pills = pharmacyKinds.querySelectorAll(".pill-btn");
+      pills.forEach(function (b) {
+        b.classList.toggle("on", b === pill);
+      });
+      renderPharmacies();
+    });
+    medCheckBtn.addEventListener("click", runMedCheck);
+    medCheckInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        runMedCheck();
+      }
+    });
+  }
+
+  /* ========================================================
+     7. CLINICAL TRIALS TAB
+     ======================================================== */
+  var TRIALS = [
+    { id: "NCT05000001", title: "Investigational Biologic for Moderate-to-Severe Lupus", sponsor: "Academic Rheumatology Research Network", phase: "Phase 3", status: "Recruiting", condition: "lupus", interventions: "Investigational biologic · Placebo · Standard of care", sites: "New York, NY · Chicago, IL", eligibility: "Adults aged 18–75 with a confirmed lupus diagnosis and active disease despite standard therapy." },
+    { id: "NCT05000002", title: "Treat-to-Target Strategy Trial in Early Rheumatoid Arthritis", sponsor: "National Rheumatology Consortium", phase: "Phase 4", status: "Recruiting", condition: "rheumatoid arthritis", interventions: "Methotrexate-based strategy · Early biologic strategy", sites: "Boston, MA · Chicago, IL", eligibility: "Adults with rheumatoid arthritis diagnosed within the past 12 months who have not yet taken a DMARD." },
+    { id: "NCT05000003", title: "Continuous Glucose Monitoring in Type 2 Diabetes", sponsor: "Endocrine Health Research Group", phase: "N/A", status: "Recruiting", condition: "type 2 diabetes", interventions: "Continuous glucose monitor · Usual care", sites: "New York, NY · Boston, MA", eligibility: "Adults with type 2 diabetes and an A1c above target on stable therapy." },
+    { id: "NCT05000004", title: "Early High-Efficacy Therapy in Relapsing Multiple Sclerosis", sponsor: "Neuroimmunology Trials Network", phase: "Phase 3", status: "Recruiting", condition: "multiple sclerosis", interventions: "High-efficacy disease-modifying therapy · Escalation therapy", sites: "Boston, MA · Chicago, IL", eligibility: "Adults aged 18–55 with relapsing-remitting multiple sclerosis diagnosed within two years." },
+    { id: "NCT05000005", title: "Maintenance Biologic Comparison in Crohn's Disease", sponsor: "Gastrointestinal Research Alliance", phase: "Phase 3", status: "Active, not recruiting", condition: "crohn's disease", interventions: "Anti-IL-23 biologic · Anti-TNF biologic", sites: "Chicago, IL", eligibility: "Adults with moderate-to-severe Crohn's disease who responded to induction therapy." },
+    { id: "NCT05000006", title: "Biologic Therapy for Severe Eosinophilic Asthma", sponsor: "Respiratory Clinical Research Group", phase: "Phase 3", status: "Recruiting", condition: "asthma", interventions: "Investigational biologic · Placebo", sites: "New York, NY · Boston, MA", eligibility: "Patients aged 12 and older with severe asthma and elevated blood eosinophils." },
+    { id: "NCT05000007", title: "SGLT2 Inhibitor Outcomes in Heart Failure", sponsor: "Cardiovascular Outcomes Institute", phase: "Phase 3", status: "Not yet recruiting", condition: "heart failure", interventions: "SGLT2 inhibitor · Placebo", sites: "New York, NY · Chicago, IL", eligibility: "Adults aged 40 and older with chronic heart failure and recent worsening symptoms." },
+    { id: "NCT05000008", title: "CGRP-Targeted Preventive Therapy for Chronic Migraine", sponsor: "Headache Clinical Research Network", phase: "Phase 3", status: "Recruiting", condition: "migraine", interventions: "CGRP-targeted therapy · Placebo", sites: "Boston, MA", eligibility: "Adults aged 18–65 with chronic migraine and 15 or more headache days per month." },
+  ];
+
+  var trialList = document.getElementById("trial-list");
+  var trialMeta = document.getElementById("trial-meta");
+  var trialSearch = document.getElementById("trial-search");
+  var trialSearchBtn = document.getElementById("trial-search-btn");
+  var trialPhase = document.getElementById("trial-phase");
+  var trialStatus = document.getElementById("trial-status");
+  var trialFilters = document.getElementById("trial-filters");
+  var trialViewSearch = document.getElementById("trial-view-search");
+  var trialViewWatching = document.getElementById("trial-view-watching");
+
+  var trialState = { search: "", phase: "all", status: "all", view: "search" };
+  var savedTrials = {};
+  var expandedTrials = {};
+
+  function trialStatusChip(status) {
+    if (status === "Recruiting") return "chip-green";
+    if (status === "Completed") return "chip";
+    return "chip-amber";
+  }
+
+  function trialCard(t) {
+    var saved = savedTrials[t.id] === true;
+    var expanded = expandedTrials[t.id] === true;
+    var siteCount = t.sites.split(" · ").length;
+
+    var html =
+      '<article class="card result-card">' +
+      '<div class="result-top"><div>' +
+      '<h3 class="result-name">' +
+      escapeHtml(t.title) +
+      "</h3>" +
+      '<p class="result-sub">' +
+      t.id +
+      " · " +
+      escapeHtml(t.sponsor) +
+      "</p></div></div>" +
+      '<div class="chip-row">' +
+      '<span class="chip chip-teal">' +
+      t.phase +
+      "</span>" +
+      '<span class="chip ' +
+      trialStatusChip(t.status) +
+      '">' +
+      t.status +
+      "</span>" +
+      '<span class="chip">' +
+      siteCount +
+      (siteCount === 1 ? " site" : " sites") +
+      "</span></div>";
+
+    if (expanded) {
+      html +=
+        '<div class="detail-block">' +
+        '<p class="section-label">Eligibility</p><p>' +
+        escapeHtml(t.eligibility) +
+        "</p>" +
+        '<p class="section-label">Interventions</p><p>' +
+        escapeHtml(t.interventions) +
+        "</p>" +
+        '<p class="section-label">Study locations</p><p>' +
+        escapeHtml(t.sites) +
+        "</p></div>";
+    }
+
+    html +=
+      '<div class="result-actions">' +
+      '<button class="btn btn-secondary btn-sm" type="button" data-action="toggle-detail" data-id="' +
+      t.id +
+      '">' +
+      (expanded ? "Less detail" : "More detail") +
+      "</button>" +
+      '<button class="btn ' +
+      (saved ? "btn-secondary" : "btn-primary") +
+      ' btn-sm" type="button" data-action="save-trial" data-id="' +
+      t.id +
+      '">' +
+      (saved ? "✓ Watching" : "Save &amp; watch") +
+      "</button>" +
+      '<a class="btn btn-secondary btn-sm" href="https://clinicaltrials.gov/search?cond=' +
+      encodeURIComponent(t.condition) +
+      '" target="_blank" rel="noreferrer">ClinicalTrials.gov</a>' +
+      "</div></article>";
+    return html;
+  }
+
+  function renderTrials() {
+    var savedCount = Object.keys(savedTrials).filter(function (k) {
+      return savedTrials[k] === true;
+    }).length;
+    trialViewWatching.textContent = "Watching (" + savedCount + ")";
+    trialViewSearch.classList.toggle("on", trialState.view === "search");
+    trialViewWatching.classList.toggle("on", trialState.view === "watching");
+    trialFilters.style.display = trialState.view === "watching" ? "none" : "";
+
+    var rows;
+    if (trialState.view === "watching") {
+      rows = TRIALS.filter(function (t) {
+        return savedTrials[t.id] === true;
+      });
+    } else {
+      var q = trialState.search.toLowerCase();
+      rows = TRIALS.filter(function (t) {
+        if (trialState.phase !== "all" && t.phase !== trialState.phase) return false;
+        if (trialState.status !== "all" && t.status !== trialState.status) return false;
+        if (q) {
+          var hay = (t.title + " " + t.condition + " " + t.sponsor).toLowerCase();
+          if (hay.indexOf(q) === -1) return false;
+        }
+        return true;
+      });
+    }
+
+    trialMeta.innerHTML =
+      "<span>" +
+      rows.length +
+      " trial" +
+      (rows.length === 1 ? "" : "s") +
+      (trialState.view === "watching" ? " watched" : "") +
+      "</span>";
+
+    if (rows.length === 0) {
+      trialList.innerHTML =
+        trialState.view === "watching"
+          ? emptyState(
+              "star",
+              "No watched trials yet",
+              "Tap “Save & watch” on a trial to keep track of it here.",
+            )
+          : emptyState(
+              "flask",
+              "No active trials match your search",
+              "Try broadening your search or clearing the phase and status filters.",
+            );
+      return;
+    }
+    var html = "";
+    for (var i = 0; i < rows.length; i++) html += trialCard(rows[i]);
+    trialList.innerHTML = html;
+  }
+
+  if (trialList) {
+    fillSelect(trialPhase, uniqueField(TRIALS, "phase"));
+    fillSelect(trialStatus, uniqueField(TRIALS, "status"));
+
+    trialSearch.addEventListener("input", function () {
+      trialState.search = trialSearch.value.trim();
+      trialState.view = "search";
+      renderTrials();
+    });
+    trialSearchBtn.addEventListener("click", function () {
+      trialState.search = trialSearch.value.trim();
+      trialState.view = "search";
+      renderTrials();
+    });
+    trialPhase.addEventListener("change", function () {
+      trialState.phase = trialPhase.value;
+      renderTrials();
+    });
+    trialStatus.addEventListener("change", function () {
+      trialState.status = trialStatus.value;
+      renderTrials();
+    });
+    trialViewSearch.addEventListener("click", function () {
+      trialState.view = "search";
+      renderTrials();
+    });
+    trialViewWatching.addEventListener("click", function () {
+      trialState.view = "watching";
+      renderTrials();
+    });
+    trialList.addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-action]");
+      if (!btn) return;
+      var id = btn.getAttribute("data-id");
+      var action = btn.getAttribute("data-action");
+      if (action === "save-trial") {
+        savedTrials[id] = !savedTrials[id];
+      } else if (action === "toggle-detail") {
+        expandedTrials[id] = !expandedTrials[id];
+      }
+      renderTrials();
+    });
+  }
+
+  /* ========================================================
+     8. RESEARCH & NONPROFITS TAB
+     ======================================================== */
+  var RESOURCES = [
+    { id: "res1", name: "Lupus Foundation of America", site: "lupus.org", category: "Nonprofit & Advocacy", url: "https://www.lupus.org", description: "National advocacy and research organization offering education, support programs, and a health-information helpline for people affected by lupus." },
+    { id: "res2", name: "Arthritis Foundation", site: "arthritis.org", category: "Nonprofit & Advocacy", url: "https://www.arthritis.org", description: "Resources, advocacy, and community programs for all forms of arthritis, including rheumatoid and psoriatic arthritis." },
+    { id: "res3", name: "American Diabetes Association", site: "diabetes.org", category: "Nonprofit & Advocacy", url: "https://www.diabetes.org", description: "Education, advocacy, and day-to-day management guidance for people living with type 1 and type 2 diabetes." },
+    { id: "res4", name: "National Multiple Sclerosis Society", site: "nationalmssociety.org", category: "Nonprofit & Advocacy", url: "https://www.nationalmssociety.org", description: "Support navigators, education, and research funding for people living with multiple sclerosis." },
+    { id: "res5", name: "American Heart Association", site: "heart.org", category: "Nonprofit & Advocacy", url: "https://www.heart.org", description: "Patient education and support for cardiovascular conditions, including heart failure and high blood pressure." },
+    { id: "res6", name: "MedlinePlus", site: "medlineplus.gov", category: "Patient Education", url: "https://medlineplus.gov", description: "Authoritative, plain-language health information on conditions, medications, and tests from the U.S. National Library of Medicine." },
+    { id: "res7", name: "CDC — Chronic Disease Resources", site: "cdc.gov", category: "Patient Education", url: "https://www.cdc.gov/chronic-disease", description: "Public-health guidance and self-management resources for major chronic conditions from the Centers for Disease Control and Prevention." },
+    { id: "res8", name: "ClinicalTrials.gov", site: "clinicaltrials.gov", category: "Patient Education", url: "https://clinicaltrials.gov", description: "The U.S. registry of clinical studies — search for trials, review eligibility, and learn what taking part involves." },
+    { id: "res9", name: "Patient Advocate Foundation", site: "patientadvocate.org", category: "Financial Aid", url: "https://www.patientadvocate.org", description: "Case-management and co-pay relief programs that help patients resolve insurance, access, and medical-debt issues." },
+    { id: "res10", name: "NeedyMeds", site: "needymeds.org", category: "Financial Aid", url: "https://www.needymeds.org", description: "A free database of patient-assistance programs, drug-discount cards, and cost-saving resources for medications and care." },
+  ];
+
+  var RESOURCE_CATEGORY_CHIPS = {
+    "Nonprofit & Advocacy": "chip-teal",
+    "Patient Education": "chip-blue",
+    "Financial Aid": "chip-amber",
+  };
+
+  var resourceList = document.getElementById("resource-list");
+  var resourceMeta = document.getElementById("resource-meta");
+  var resourceSearch = document.getElementById("resource-search");
+  var resourceCategories = document.getElementById("resource-categories");
+  var resourceState = { search: "", category: "all" };
+
+  function resourceCard(r) {
+    return (
+      '<article class="card result-card">' +
+      '<div class="result-top"><div>' +
+      '<h3 class="result-name">' +
+      escapeHtml(r.name) +
+      "</h3>" +
+      '<p class="result-sub">' +
+      escapeHtml(r.site) +
+      "</p></div>" +
+      '<span class="chip ' +
+      (RESOURCE_CATEGORY_CHIPS[r.category] || "chip") +
+      '">' +
+      escapeHtml(r.category) +
+      "</span></div>" +
+      '<p class="result-text">' +
+      escapeHtml(r.description) +
+      "</p>" +
+      '<div class="result-actions">' +
+      '<a class="btn btn-primary btn-sm" href="' +
+      r.url +
+      '" target="_blank" rel="noreferrer">Visit website</a>' +
+      "</div></article>"
+    );
+  }
+
+  function renderResources() {
+    var q = resourceState.search.toLowerCase();
+    var rows = RESOURCES.filter(function (r) {
+      if (resourceState.category !== "all" && r.category !== resourceState.category) return false;
+      if (q) {
+        var hay = (r.name + " " + r.description + " " + r.category).toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+
+    resourceMeta.innerHTML =
+      "<span>" + rows.length + " resource" + (rows.length === 1 ? "" : "s") + "</span>";
+
+    if (rows.length === 0) {
+      resourceList.innerHTML = emptyState(
+        "search",
+        "No resources match your search",
+        "Try a different search term or category.",
+      );
+      return;
+    }
+    var html = "";
+    for (var i = 0; i < rows.length; i++) html += resourceCard(rows[i]);
+    resourceList.innerHTML = html;
+  }
+
+  if (resourceList) {
+    resourceSearch.addEventListener("input", function () {
+      resourceState.search = resourceSearch.value.trim();
+      renderResources();
+    });
+    resourceCategories.addEventListener("click", function (e) {
+      var pill = e.target.closest("[data-category]");
+      if (!pill) return;
+      resourceState.category = pill.getAttribute("data-category");
+      var pills = resourceCategories.querySelectorAll(".pill-btn");
+      pills.forEach(function (b) {
+        b.classList.toggle("on", b === pill);
+      });
+      renderResources();
+    });
+  }
+
+  /* ========================================================
+     9. INITIAL RENDER
+     ======================================================== */
+  if (providerList) renderProviders();
+  if (pharmacyList) renderPharmacies();
+  if (trialList) renderTrials();
+  if (resourceList) renderResources();
 })();

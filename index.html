@@ -9,15 +9,14 @@
       content="Zuuno — a clinician-grade medical assistant and resource hub for people managing a known diagnosis."
     />
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
-    <link rel="stylesheet" href="style.css?v=5" />
+    <link rel="stylesheet" href="style.css?v=6" />
     <title>Zuuno — Medical Assistant</title>
   </head>
   <body>
     <!--
       ZUUNO
       A clinician-grade medical assistant. Built as a plain HTML/CSS/JS app.
-      Tab navigation and the chatbot are interactive; other tabs are still
-      being wired up milestone by milestone (see docs/version-log.md).
+      All five tabs are interactive. See docs/version-log.md for the history.
     -->
     <div class="app">
       <!-- ============ HEADER ============ -->
@@ -109,14 +108,15 @@
 
           <div class="filter-bar">
             <select class="select" id="provider-location" aria-label="Search area">
+              <option value="all">All locations</option>
               <option>New York, NY</option>
               <option>Boston, MA</option>
               <option>Chicago, IL</option>
             </select>
             <select class="select" id="provider-radius" aria-label="Search radius">
-              <option>25 mi</option>
-              <option selected>50 mi</option>
-              <option>100 mi</option>
+              <option value="25">Within 25 mi</option>
+              <option value="50" selected>Within 50 mi</option>
+              <option value="100">Within 100 mi</option>
             </select>
             <button class="pill-btn" id="provider-filter-btn" type="button">
               <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
@@ -126,92 +126,27 @@
             </button>
           </div>
 
+          <div class="filter-panel" id="provider-filters">
+            <p class="section-label">Specialty</p>
+            <select class="select" id="provider-specialty" aria-label="Specialty">
+              <option value="all">All specialties</option>
+            </select>
+            <div class="chip-row">
+              <button class="pill-btn" id="provider-telehealth" type="button">Telehealth only</button>
+              <button class="pill-btn" id="provider-accepting" type="button">Accepting new patients</button>
+            </div>
+          </div>
+
           <div class="map-box" id="provider-map" role="img" aria-label="Map placeholder">
             <div class="map-grid"></div>
             <span class="map-pin" style="top: 38%; left: 30%"></span>
             <span class="map-pin" style="top: 56%; left: 62%"></span>
             <span class="map-pin" style="top: 24%; left: 70%"></span>
-            <span class="map-label">Interactive provider map</span>
+            <span class="map-label">Provider map — full version coming soon</span>
           </div>
 
-          <div class="results-meta"><span>2 providers found</span><span>1 offers telehealth</span></div>
-
-          <div class="result-list">
-            <article class="card result-card">
-              <div class="result-top">
-                <div>
-                  <h3 class="result-name">Dr. Elena Marquez, MD</h3>
-                  <p class="result-sub">Rheumatology</p>
-                </div>
-                <button class="star-btn" type="button" aria-label="Save provider">
-                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
-                    <path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 6.9L12 18.8 5.9 21l1.2-6.9-5-4.9 6.9-1z" />
-                  </svg>
-                </button>
-              </div>
-              <div class="chip-row">
-                <span class="chip chip-teal">2.4 mi</span>
-                <span class="chip chip-blue">Telehealth</span>
-                <span class="chip chip-green">Accepting patients</span>
-              </div>
-              <div class="result-rows">
-                <p class="result-row">
-                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
-                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                  425 Madison Ave, Suite 1100, New York, NY 10017
-                </p>
-                <p class="result-row">
-                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" />
-                  </svg>
-                  (212) 555-0143
-                </p>
-              </div>
-              <div class="result-actions">
-                <button class="btn btn-primary btn-sm" type="button">Call</button>
-                <button class="btn btn-secondary btn-sm" type="button">Directions</button>
-              </div>
-            </article>
-
-            <article class="card result-card">
-              <div class="result-top">
-                <div>
-                  <h3 class="result-name">Dr. Samuel Adeyemi, MD</h3>
-                  <p class="result-sub">Rheumatology</p>
-                </div>
-                <button class="star-btn" type="button" aria-label="Save provider">
-                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
-                    <path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 6.9L12 18.8 5.9 21l1.2-6.9-5-4.9 6.9-1z" />
-                  </svg>
-                </button>
-              </div>
-              <div class="chip-row">
-                <span class="chip chip-teal">5.1 mi</span>
-                <span class="chip chip-green">Accepting patients</span>
-              </div>
-              <div class="result-rows">
-                <p class="result-row">
-                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
-                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                  1611 Harrison St, New York, NY 10013
-                </p>
-                <p class="result-row">
-                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" />
-                  </svg>
-                  (212) 555-0227
-                </p>
-              </div>
-              <div class="result-actions">
-                <button class="btn btn-primary btn-sm" type="button">Call</button>
-                <button class="btn btn-secondary btn-sm" type="button">Directions</button>
-              </div>
-            </article>
-          </div>
+          <div class="results-meta" id="provider-meta"></div>
+          <div class="result-list" id="provider-list"></div>
         </section>
 
         <!-- ====================================================== -->
@@ -234,82 +169,25 @@
               />
               <button class="btn btn-primary" id="med-check-btn" type="button">Check</button>
             </div>
+            <div id="med-check-msg"></div>
           </div>
 
           <div class="chip-row tabs-mini" id="pharmacy-kinds">
-            <button class="pill-btn on" type="button">All</button>
-            <button class="pill-btn" type="button">Retail</button>
-            <button class="pill-btn" type="button">Specialty</button>
-            <button class="pill-btn" type="button">Infusion centers</button>
+            <button class="pill-btn on" type="button" data-kind="all">All</button>
+            <button class="pill-btn" type="button" data-kind="retail">Retail</button>
+            <button class="pill-btn" type="button" data-kind="specialty">Specialty</button>
+            <button class="pill-btn" type="button" data-kind="infusion">Infusion centers</button>
           </div>
 
           <div class="map-box" id="pharmacy-map" role="img" aria-label="Map placeholder">
             <div class="map-grid"></div>
             <span class="map-pin pharmacy" style="top: 42%; left: 40%"></span>
             <span class="map-pin infusion" style="top: 60%; left: 66%"></span>
-            <span class="map-label">Pharmacy &amp; infusion map</span>
+            <span class="map-label">Pharmacy map — full version coming soon</span>
           </div>
 
-          <div class="result-list">
-            <article class="card result-card">
-              <div class="result-top">
-                <div>
-                  <h3 class="result-name">Midtown Community Pharmacy</h3>
-                  <p class="result-sub">CVS Pharmacy · Retail pharmacy</p>
-                </div>
-              </div>
-              <div class="chip-row">
-                <span class="chip chip-teal">1.1 mi</span>
-                <span class="chip chip-green">Open 24 hours</span>
-                <span class="chip">Delivery</span>
-              </div>
-              <div class="result-rows">
-                <p class="result-row">
-                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 6v6l4 2" />
-                  </svg>
-                  Mon–Fri 8 AM–10 PM, Sat–Sun 9 AM–7 PM
-                </p>
-                <p class="result-row">
-                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" />
-                  </svg>
-                  (212) 555-0301
-                </p>
-              </div>
-              <div class="result-actions">
-                <button class="btn btn-primary btn-sm" type="button">Call pharmacy</button>
-                <button class="btn btn-secondary btn-sm" type="button">Directions</button>
-              </div>
-            </article>
-
-            <article class="card result-card">
-              <div class="result-top">
-                <div>
-                  <h3 class="result-name">East River Infusion Center</h3>
-                  <p class="result-sub">Independent · Infusion center</p>
-                </div>
-              </div>
-              <div class="chip-row">
-                <span class="chip chip-teal">3.0 mi</span>
-                <span class="chip chip-violet">Infusion center</span>
-              </div>
-              <div class="result-rows">
-                <p class="result-row">
-                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
-                    <path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3" />
-                    <path d="M7 15h10" />
-                  </svg>
-                  Infusion specialties: Rheumatology, Neurology, Immunology
-                </p>
-              </div>
-              <div class="result-actions">
-                <button class="btn btn-primary btn-sm" type="button">Call</button>
-                <button class="btn btn-secondary btn-sm" type="button">Directions</button>
-              </div>
-            </article>
-          </div>
+          <div class="results-meta" id="pharmacy-meta"></div>
+          <div class="result-list" id="pharmacy-list"></div>
         </section>
 
         <!-- ====================================================== -->
@@ -338,66 +216,21 @@
           </div>
 
           <div class="chip-row tabs-mini">
-            <button class="pill-btn on" type="button">Search results</button>
-            <button class="pill-btn" type="button">Watching (0)</button>
+            <button class="pill-btn on" id="trial-view-search" type="button">Search results</button>
+            <button class="pill-btn" id="trial-view-watching" type="button">Watching (0)</button>
           </div>
 
-          <div class="result-list">
-            <article class="card result-card">
-              <div class="result-top">
-                <div>
-                  <h3 class="result-name">Investigational Biologic for Moderate-to-Severe Lupus</h3>
-                  <p class="result-sub">NCT05000001 · Academic Rheumatology Research Network</p>
-                </div>
-                <button class="star-btn" type="button" aria-label="Watch trial">
-                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
-                    <path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 6.9L12 18.8 5.9 21l1.2-6.9-5-4.9 6.9-1z" />
-                  </svg>
-                </button>
-              </div>
-              <div class="chip-row">
-                <span class="chip chip-teal">Phase 3</span>
-                <span class="chip chip-green">Recruiting</span>
-                <span class="chip">2 sites</span>
-              </div>
-              <div class="result-rows">
-                <p class="result-row">
-                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
-                    <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" />
-                    <path d="m8.5 8.5 7 7" />
-                  </svg>
-                  Investigational biologic · Placebo · Standard of care
-                </p>
-              </div>
-              <div class="result-actions">
-                <button class="btn btn-secondary btn-sm" type="button">More detail</button>
-                <button class="btn btn-primary btn-sm" type="button">Save &amp; watch</button>
-              </div>
-            </article>
-
-            <article class="card result-card">
-              <div class="result-top">
-                <div>
-                  <h3 class="result-name">Treat-to-Target Strategy Trial in Early Rheumatoid Arthritis</h3>
-                  <p class="result-sub">NCT05000002 · National Rheumatology Consortium</p>
-                </div>
-                <button class="star-btn" type="button" aria-label="Watch trial">
-                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
-                    <path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 6.9L12 18.8 5.9 21l1.2-6.9-5-4.9 6.9-1z" />
-                  </svg>
-                </button>
-              </div>
-              <div class="chip-row">
-                <span class="chip chip-teal">Phase 4</span>
-                <span class="chip chip-green">Recruiting</span>
-                <span class="chip">2 sites</span>
-              </div>
-              <div class="result-actions">
-                <button class="btn btn-secondary btn-sm" type="button">More detail</button>
-                <button class="btn btn-primary btn-sm" type="button">Save &amp; watch</button>
-              </div>
-            </article>
+          <div class="filter-bar" id="trial-filters">
+            <select class="select" id="trial-phase" aria-label="Trial phase">
+              <option value="all">All phases</option>
+            </select>
+            <select class="select" id="trial-status" aria-label="Trial status">
+              <option value="all">All statuses</option>
+            </select>
           </div>
+
+          <div class="results-meta" id="trial-meta"></div>
+          <div class="result-list" id="trial-list"></div>
         </section>
 
         <!-- ====================================================== -->
@@ -425,64 +258,20 @@
           </div>
 
           <div class="chip-row tabs-mini" id="resource-categories">
-            <button class="pill-btn on" type="button">All</button>
-            <button class="pill-btn" type="button">Nonprofit &amp; Advocacy</button>
-            <button class="pill-btn" type="button">Patient Education</button>
-            <button class="pill-btn" type="button">Financial Aid</button>
+            <button class="pill-btn on" type="button" data-category="all">All</button>
+            <button class="pill-btn" type="button" data-category="Nonprofit &amp; Advocacy">
+              Nonprofit &amp; Advocacy
+            </button>
+            <button class="pill-btn" type="button" data-category="Patient Education">
+              Patient Education
+            </button>
+            <button class="pill-btn" type="button" data-category="Financial Aid">
+              Financial Aid
+            </button>
           </div>
 
-          <div class="result-list">
-            <article class="card result-card">
-              <div class="result-top">
-                <div>
-                  <h3 class="result-name">Lupus Foundation of America</h3>
-                  <p class="result-sub">lupus.org</p>
-                </div>
-                <span class="chip chip-teal">Nonprofit &amp; Advocacy</span>
-              </div>
-              <p class="result-text">
-                National advocacy and research organization offering education, support programs,
-                and a health-information helpline for people affected by lupus.
-              </p>
-              <div class="result-actions">
-                <button class="btn btn-primary btn-sm" type="button">Visit website</button>
-              </div>
-            </article>
-
-            <article class="card result-card">
-              <div class="result-top">
-                <div>
-                  <h3 class="result-name">MedlinePlus (U.S. National Library of Medicine)</h3>
-                  <p class="result-sub">medlineplus.gov</p>
-                </div>
-                <span class="chip chip-blue">Patient Education</span>
-              </div>
-              <p class="result-text">
-                Authoritative, plain-language health information on conditions, medications, and
-                tests from the National Institutes of Health.
-              </p>
-              <div class="result-actions">
-                <button class="btn btn-primary btn-sm" type="button">Visit website</button>
-              </div>
-            </article>
-
-            <article class="card result-card">
-              <div class="result-top">
-                <div>
-                  <h3 class="result-name">Patient Advocate Foundation</h3>
-                  <p class="result-sub">patientadvocate.org</p>
-                </div>
-                <span class="chip chip-amber">Financial Aid</span>
-              </div>
-              <p class="result-text">
-                Case-management and co-pay relief programs that help patients resolve insurance,
-                access, and medical-debt issues.
-              </p>
-              <div class="result-actions">
-                <button class="btn btn-primary btn-sm" type="button">Visit website</button>
-              </div>
-            </article>
-          </div>
+          <div class="results-meta" id="resource-meta"></div>
+          <div class="result-list" id="resource-list"></div>
         </section>
       </main>
 
@@ -526,6 +315,6 @@
       </nav>
     </div>
 
-    <script src="script.js?v=5"></script>
+    <script src="script.js?v=6"></script>
   </body>
 </html>

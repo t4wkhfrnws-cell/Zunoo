@@ -158,16 +158,36 @@ anything yet. Next: make the other tabs' searches and filters work.
 
 ---
 
-## App version #6
+## App version #6 — All Tabs Interactive  *(Milestone 3: Functional MVP)*
 
 **Changes in visual layout**
 
+The Providers, Pharmacy, Trials, and Resources tabs are now built from real
+data instead of fixed examples. Each tab shows a live result count, filter
+controls, and a friendly "nothing found" message when a search comes up
+empty. The map placeholders now read "full version coming soon" so testers
+don't mistake them for broken features.
 
 **Changes in functionality**
 
+Made all four remaining tabs interactive:
+
+- Providers — filter by location, distance, specialty, telehealth, and
+  whether they accept new patients; save a provider with the star; the
+  Call and Directions buttons open the phone dialer and a map.
+- Pharmacy — filter by type (retail / specialty / infusion centers); a
+  medication-availability check; Call and Directions buttons.
+- Trials — search by condition, filter by phase and status, "Save & watch"
+  a trial and view a Watching list, and expand "More detail" for
+  eligibility and study locations.
+- Resources — search and filter by category, with working website links.
 
 **What isn't working well**
 
+The maps are still placeholder graphics (real interactive maps are a
+stretch goal). Saved providers and watched trials are remembered only
+until the page is reloaded — they do not persist between visits yet. The
+Settings and Premium icons in the header still do not open anything.
 
 ---
 
