@@ -72,16 +72,30 @@ chatbot so it can take a typed question and show an answer.
 
 ---
 
-## App version #3
+## App version #3 — Fix: Tab Navigation Caching Bug  *(Milestone 2)*
 
 **Changes in visual layout**
 
+No new visual changes — the same five screens, one shown at a time.
 
 **Changes in functionality**
 
+Fixed a bug found during testing: on the live site the tabs looked broken and
+every screen showed stacked together. The cause was the browser loading an old,
+cached copy of the JavaScript file. Two fixes were made:
+
+1. Screens are now hidden and shown with a CSS class (`.active`) instead of
+   relying only on JavaScript, so the layout is correct even before the script
+   runs (and even if it fails to load).
+2. Added a version tag to the style and script links (`?v=3`) so the browser is
+   forced to download the fresh files instead of cached ones.
 
 **What isn't working well**
 
+The chatbot input, search boxes, filters, and maps still do nothing.
+Testing note: after each update, do a hard refresh (Ctrl+Shift+R /
+Cmd+Shift+R) or open the site in a private/incognito window so you are not
+shown a cached version.
 
 ---
 

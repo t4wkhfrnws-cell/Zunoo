@@ -197,14 +197,14 @@ h3 {
   padding-bottom: calc(var(--tabbar-h) + 24px);
 }
 
-/* ---------- Screen (stacked in Milestone 1) ---------- */
+/* ---------- Screen (one shown at a time) ---------- */
 .screen {
+  display: none;
   padding: 18px 14px 8px;
-  border-top: 8px solid var(--bg);
 }
 
-.screen:first-child {
-  border-top: none;
+.screen.active {
+  display: block;
 }
 
 .screen-head {

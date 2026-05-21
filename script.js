@@ -38,10 +38,12 @@
   var tabs = document.querySelectorAll(".tab");
   var screens = document.querySelectorAll(".screen");
 
-  /* Show one screen, hide the rest, and highlight the matching tab. */
+  /* Show one screen, hide the rest, and highlight the matching tab.
+     Screens are shown/hidden with the CSS class "active" so the layout
+     stays correct even before this script runs. */
   function showScreen(targetId) {
     screens.forEach(function (screen) {
-      screen.style.display = screen.id === targetId ? "" : "none";
+      screen.classList.toggle("active", screen.id === targetId);
     });
     tabs.forEach(function (tab) {
       tab.classList.toggle("on", tab.getAttribute("data-target") === targetId);
