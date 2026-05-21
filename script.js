@@ -1,16 +1,13 @@
 /* ============================================================
    ZUUNO — script.js
 
-   Milestone 2: The Moving Engine.
    Working features:
      - Bottom tab-bar navigation                        (v2-v3)
      - Chatbot: cited answers, sections, chips,
        condition context, safety guardrail              (v4-v5)
-     - Providers, Pharmacy, Trials and Resources tabs:
-       data-driven lists with search and filters        (v6)
-
-   RESERVED HTML IDs — do not rename these. The JavaScript attaches
-   event listeners and writes content to them.
+     - Providers, Pharmacy, Trials, Resources tabs       (v6)
+     - Settings, Premium, onboarding, accessibility,
+       saved-data persistence, personalization          (v7)
 
    The medical content below is educational reference information only.
    It is not medical advice and does not diagnose or prescribe.
@@ -47,9 +44,8 @@
   showScreen("screen-chatbot");
 
   /* ========================================================
-     2. SHARED HELPERS
+     2. SHARED HELPERS + LOCAL STORAGE
      ======================================================== */
-  /* Escape user-typed text before placing it in the page. */
   function escapeHtml(str) {
     return String(str)
       .replace(/&/g, "&amp;")
@@ -59,15 +55,32 @@
       .replace(/'/g, "&#39;");
   }
 
-  /* Phone number -> tel: link. */
   function telHref(phone) {
     return "tel:" + String(phone).replace(/[^0-9+]/g, "");
   }
 
-  /* Address -> an OpenStreetMap search link for directions. */
   function mapsHref(address) {
     return "https://www.openstreetmap.org/search?query=" + encodeURIComponent(address);
   }
+
+  /* Tiny wrapper around localStorage so saved data survives a reload. */
+  var STORE = {
+    get: function (key, fallback) {
+      try {
+        var raw = localStorage.getItem("zuuno_" + key);
+        return raw === null ? fallback : JSON.parse(raw);
+      } catch (e) {
+        return fallback;
+      }
+    },
+    set: function (key, value) {
+      try {
+        localStorage.setItem("zuuno_" + key, JSON.stringify(value));
+      } catch (e) {
+        /* storage unavailable — non-fatal for this app */
+      }
+    },
+  };
 
   var ICON_PATHS = {
     pin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/>',
@@ -79,9 +92,9 @@
     flask: '<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M7 15h10"/>',
     search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
     info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+    sparkle: '<path d="M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 21l-2.2-6.8L3.5 12l6.3-2.2z"/>',
   };
 
-  /* Small inline icon (16px) used inside cards. */
   function icon(name) {
     return (
       '<svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">' +
@@ -90,14 +103,12 @@
     );
   }
 
-  /* Friendly "nothing found" block. */
   function emptyState(iconName, title, message) {
     return (
       '<div class="empty-state">' +
       '<svg viewBox="0 0 24 24" aria-hidden="true">' +
       (ICON_PATHS[iconName] || "") +
-      "</svg>" +
-      "<h3>" +
+      "</svg><h3>" +
       escapeHtml(title) +
       "</h3><p>" +
       escapeHtml(message) +
@@ -105,7 +116,6 @@
     );
   }
 
-  /* Fill a <select> with options built from a list of values. */
   function fillSelect(selectEl, values) {
     for (var i = 0; i < values.length; i++) {
       var option = document.createElement("option");
@@ -115,7 +125,6 @@
     }
   }
 
-  /* Unique, sorted values of one field across a list of objects. */
   function uniqueField(list, field) {
     var seen = {};
     var out = [];
@@ -128,6 +137,14 @@
     }
     out.sort();
     return out;
+  }
+
+  function countSaved(map) {
+    var n = 0;
+    for (var k in map) {
+      if (map[k] === true) n += 1;
+    }
+    return n;
   }
 
   /* ========================================================
@@ -483,7 +500,87 @@
   ];
 
   /* ========================================================
-     4. CHATBOT
+     4. PERSONALIZATION
+     The condition chosen in the chatbot tailors the other tabs.
+     ======================================================== */
+  var CONDITION_SPECIALTY = {
+    "Systemic Lupus Erythematosus": "Rheumatology",
+    "Rheumatoid Arthritis": "Rheumatology",
+    "Type 2 Diabetes Mellitus": "Endocrinology",
+    "Type 1 Diabetes Mellitus": "Endocrinology",
+    Asthma: "Pulmonology",
+    "Chronic Obstructive Pulmonary Disease": "Pulmonology",
+    Hypertension: "Cardiology",
+    "Heart Failure": "Cardiology",
+    Migraine: "Neurology",
+    "Multiple Sclerosis": "Neurology",
+    "Crohn's Disease": "Gastroenterology",
+    Hypothyroidism: "Endocrinology",
+  };
+  var CONDITION_TRIAL = {
+    "Systemic Lupus Erythematosus": "lupus",
+    "Rheumatoid Arthritis": "rheumatoid arthritis",
+    "Type 2 Diabetes Mellitus": "type 2 diabetes",
+    "Type 1 Diabetes Mellitus": "type 1 diabetes",
+    Asthma: "asthma",
+    "Chronic Obstructive Pulmonary Disease": "copd",
+    Hypertension: "hypertension",
+    "Heart Failure": "heart failure",
+    Migraine: "migraine",
+    "Multiple Sclerosis": "multiple sclerosis",
+    "Crohn's Disease": "crohn",
+    Hypothyroidism: "hypothyroidism",
+  };
+
+  var providerPerso = document.getElementById("provider-perso");
+  var trialPerso = document.getElementById("trial-perso");
+  var activeCondition = null;
+
+  function persoBanner(detail) {
+    return (
+      '<div class="perso-banner">' +
+      icon("sparkle") +
+      "<span><strong>Personalized for " +
+      escapeHtml(activeCondition.name) +
+      "</strong>" +
+      escapeHtml(detail) +
+      "</span>" +
+      '<button class="link-btn" type="button" data-action="clear-perso">Show all</button>' +
+      "</div>"
+    );
+  }
+
+  function renderPersoBanners() {
+    if (providerPerso) {
+      providerPerso.innerHTML = activeCondition
+        ? persoBanner(
+            (CONDITION_SPECIALTY[activeCondition.name] || "Relevant") +
+              " specialists are shown first.",
+          )
+        : "";
+    }
+    if (trialPerso) {
+      trialPerso.innerHTML = activeCondition
+        ? persoBanner("Trials matching your condition are shown first.")
+        : "";
+    }
+  }
+
+  /* Set the active condition and refresh everything that depends on it. */
+  function setActiveCondition(condition) {
+    activeCondition = condition || null;
+    var idx = condition ? CONDITIONS.indexOf(condition) : -1;
+    STORE.set("activeCondition", idx);
+    if (conditionSelect) {
+      conditionSelect.value = idx < 0 ? "" : String(idx);
+    }
+    renderPersoBanners();
+    if (providerList) renderProviders();
+    if (trialList) renderTrials();
+  }
+
+  /* ========================================================
+     5. CHATBOT
      ======================================================== */
   var SECTION_ICONS = {
     symptoms: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
@@ -499,7 +596,6 @@
   var chatSend = document.getElementById("chat-send");
   var conditionSelect = document.getElementById("condition-select");
   var suggestedPrompts = document.getElementById("suggested-prompts");
-  var selectedCondition = null;
 
   function normalize(str) {
     return String(str)
@@ -684,10 +780,14 @@
       return guardrailCard(text);
     }
     var match = findCondition(text);
-    if (!match && selectedCondition) {
-      match = { condition: selectedCondition, score: 0.95 };
+    if (!match && activeCondition) {
+      match = { condition: activeCondition, score: 0.95 };
     }
-    return match ? answerCard(match.condition, match.score) : noMatchCard();
+    if (match) {
+      setActiveCondition(match.condition);
+      return answerCard(match.condition, match.score);
+    }
+    return noMatchCard();
   }
 
   function sendMessage(text) {
@@ -744,12 +844,12 @@
     }
     conditionSelect.addEventListener("change", function () {
       var value = conditionSelect.value;
-      selectedCondition = value === "" ? null : CONDITIONS[Number(value)];
+      setActiveCondition(value === "" ? null : CONDITIONS[Number(value)]);
     });
   }
 
   /* ========================================================
-     5. PROVIDERS TAB
+     6. PROVIDERS TAB
      ======================================================== */
   var PROVIDERS = [
     { id: "p1", name: "Dr. Elena Marquez, MD", specialty: "Rheumatology", city: "New York, NY", distanceMi: 2.4, telehealth: true, acceptingNew: true, address: "425 Madison Ave, New York, NY 10017", phone: "(212) 555-0143" },
@@ -779,7 +879,7 @@
     telehealthOnly: false,
     acceptingOnly: false,
   };
-  var savedProviders = {};
+  var savedProviders = STORE.get("savedProviders", {});
 
   function providerCard(p) {
     var saved = savedProviders[p.id] === true;
@@ -842,7 +942,14 @@
       if (providerState.acceptingOnly && !p.acceptingNew) return false;
       return true;
     });
+
+    var persoSpecialty = activeCondition ? CONDITION_SPECIALTY[activeCondition.name] : null;
     rows.sort(function (a, b) {
+      if (persoSpecialty) {
+        var aMatch = a.specialty === persoSpecialty ? 0 : 1;
+        var bMatch = b.specialty === persoSpecialty ? 0 : 1;
+        if (aMatch !== bMatch) return aMatch - bMatch;
+      }
       return a.distanceMi - b.distanceMi;
     });
 
@@ -896,12 +1003,13 @@
       if (!btn) return;
       var id = btn.getAttribute("data-id");
       savedProviders[id] = !savedProviders[id];
+      STORE.set("savedProviders", savedProviders);
       renderProviders();
     });
   }
 
   /* ========================================================
-     6. PHARMACY TAB
+     7. PHARMACY TAB
      ======================================================== */
   var PHARMACIES = [
     { id: "rx1", name: "Midtown Community Pharmacy", chain: "CVS Pharmacy", kind: "retail", distanceMi: 1.1, hours: "Mon–Fri 8 AM–10 PM, Sat–Sun 9 AM–7 PM", phone: "(212) 555-0301", address: "630 Lexington Ave, New York, NY 10022", info: "Prescriptions, immunizations, drive-thru, home delivery" },
@@ -1026,8 +1134,7 @@
       var pill = e.target.closest("[data-kind]");
       if (!pill) return;
       pharmacyKind = pill.getAttribute("data-kind");
-      var pills = pharmacyKinds.querySelectorAll(".pill-btn");
-      pills.forEach(function (b) {
+      pharmacyKinds.querySelectorAll(".pill-btn").forEach(function (b) {
         b.classList.toggle("on", b === pill);
       });
       renderPharmacies();
@@ -1042,7 +1149,7 @@
   }
 
   /* ========================================================
-     7. CLINICAL TRIALS TAB
+     8. CLINICAL TRIALS TAB
      ======================================================== */
   var TRIALS = [
     { id: "NCT05000001", title: "Investigational Biologic for Moderate-to-Severe Lupus", sponsor: "Academic Rheumatology Research Network", phase: "Phase 3", status: "Recruiting", condition: "lupus", interventions: "Investigational biologic · Placebo · Standard of care", sites: "New York, NY · Chicago, IL", eligibility: "Adults aged 18–75 with a confirmed lupus diagnosis and active disease despite standard therapy." },
@@ -1066,7 +1173,7 @@
   var trialViewWatching = document.getElementById("trial-view-watching");
 
   var trialState = { search: "", phase: "all", status: "all", view: "search" };
-  var savedTrials = {};
+  var savedTrials = STORE.get("savedTrials", {});
   var expandedTrials = {};
 
   function trialStatusChip(status) {
@@ -1141,9 +1248,7 @@
   }
 
   function renderTrials() {
-    var savedCount = Object.keys(savedTrials).filter(function (k) {
-      return savedTrials[k] === true;
-    }).length;
+    var savedCount = countSaved(savedTrials);
     trialViewWatching.textContent = "Watching (" + savedCount + ")";
     trialViewSearch.classList.toggle("on", trialState.view === "search");
     trialViewWatching.classList.toggle("on", trialState.view === "watching");
@@ -1165,6 +1270,14 @@
         }
         return true;
       });
+      if (activeCondition) {
+        var key = CONDITION_TRIAL[activeCondition.name];
+        rows.sort(function (a, b) {
+          var aMatch = key && a.condition.indexOf(key) !== -1 ? 0 : 1;
+          var bMatch = key && b.condition.indexOf(key) !== -1 ? 0 : 1;
+          return aMatch - bMatch;
+        });
+      }
     }
 
     trialMeta.innerHTML =
@@ -1232,6 +1345,7 @@
       var action = btn.getAttribute("data-action");
       if (action === "save-trial") {
         savedTrials[id] = !savedTrials[id];
+        STORE.set("savedTrials", savedTrials);
       } else if (action === "toggle-detail") {
         expandedTrials[id] = !expandedTrials[id];
       }
@@ -1240,7 +1354,7 @@
   }
 
   /* ========================================================
-     8. RESEARCH & NONPROFITS TAB
+     9. RESEARCH & NONPROFITS TAB
      ======================================================== */
   var RESOURCES = [
     { id: "res1", name: "Lupus Foundation of America", site: "lupus.org", category: "Nonprofit & Advocacy", url: "https://www.lupus.org", description: "National advocacy and research organization offering education, support programs, and a health-information helpline for people affected by lupus." },
@@ -1329,19 +1443,243 @@
       var pill = e.target.closest("[data-category]");
       if (!pill) return;
       resourceState.category = pill.getAttribute("data-category");
-      var pills = resourceCategories.querySelectorAll(".pill-btn");
-      pills.forEach(function (b) {
+      resourceCategories.querySelectorAll(".pill-btn").forEach(function (b) {
         b.classList.toggle("on", b === pill);
       });
       renderResources();
     });
   }
 
+  /* Personalization "Show all" link clears the active condition. */
+  document.addEventListener("click", function (e) {
+    if (e.target.closest('[data-action="clear-perso"]')) {
+      setActiveCondition(null);
+    }
+  });
+
   /* ========================================================
-     9. INITIAL RENDER
+     10. ACCESSIBILITY
      ======================================================== */
+  var TEXT_SIZES = { small: "15px", normal: "16px", large: "18px" };
+  var a11y = STORE.get("a11y", { contrast: "normal", textsize: "normal" });
+
+  function applyA11y() {
+    document.documentElement.setAttribute(
+      "data-contrast",
+      a11y.contrast === "high" ? "high" : "normal",
+    );
+    document.documentElement.style.fontSize = TEXT_SIZES[a11y.textsize] || "16px";
+  }
+
+  /* ========================================================
+     11. PREMIUM + MODALS
+     ======================================================== */
+  var premium = STORE.get("premium", false);
+  var premiumBtn = document.getElementById("premium-btn");
+  var settingsBtn = document.getElementById("settings-btn");
+  var settingsModal = document.getElementById("settings-modal");
+  var premiumModal = document.getElementById("premium-modal");
+  var premiumHeadline = document.getElementById("premium-headline");
+  var premiumPrice = document.getElementById("premium-price");
+  var premiumAction = document.getElementById("premium-action");
+  var contrastToggle = document.getElementById("contrast-toggle");
+  var textSizeButtons = document.querySelectorAll("[data-textsize]");
+  var settingsPlan = document.getElementById("settings-plan");
+  var settingsPlanSub = document.getElementById("settings-plan-sub");
+  var settingsPremiumBtn = document.getElementById("settings-premium-btn");
+  var settingsSaved = document.getElementById("settings-saved");
+  var clearDataBtn = document.getElementById("clear-data-btn");
+
+  function openModal(modal) {
+    if (modal) modal.classList.add("open");
+  }
+  function closeModal(modal) {
+    if (modal) modal.classList.remove("open");
+  }
+
+  function applyPremium() {
+    if (premiumBtn) premiumBtn.classList.toggle("active", premium);
+  }
+
+  function refreshPremiumModal() {
+    if (!premiumHeadline) return;
+    if (premium) {
+      premiumHeadline.textContent = "Premium is active";
+      premiumPrice.textContent = "Thank you for supporting Zuuno";
+      premiumAction.textContent = "Cancel Premium";
+      premiumAction.classList.remove("btn-primary");
+      premiumAction.classList.add("btn-secondary");
+    } else {
+      premiumHeadline.textContent = "Unlock the full Zuuno experience";
+      premiumPrice.innerHTML = "$6.99 <span>/ month</span>";
+      premiumAction.textContent = "Start Premium";
+      premiumAction.classList.add("btn-primary");
+      premiumAction.classList.remove("btn-secondary");
+    }
+  }
+
+  function refreshSettings() {
+    if (!contrastToggle) return;
+    contrastToggle.textContent = a11y.contrast === "high" ? "On" : "Off";
+    contrastToggle.classList.toggle("on", a11y.contrast === "high");
+    textSizeButtons.forEach(function (b) {
+      b.classList.toggle("on", b.getAttribute("data-textsize") === a11y.textsize);
+    });
+    settingsPlan.textContent = premium ? "Zuuno Premium" : "Zuuno Free";
+    settingsPlanSub.textContent = premium
+      ? "All premium features are unlocked"
+      : "Upgrade for premium features";
+    settingsPremiumBtn.textContent = premium ? "Manage" : "View";
+    var pc = countSaved(savedProviders);
+    var tc = countSaved(savedTrials);
+    settingsSaved.textContent =
+      pc + tc === 0
+        ? "No saved items yet"
+        : pc +
+          " provider" +
+          (pc === 1 ? "" : "s") +
+          " and " +
+          tc +
+          " trial" +
+          (tc === 1 ? "" : "s") +
+          " saved";
+  }
+
+  if (settingsBtn) {
+    settingsBtn.addEventListener("click", function () {
+      refreshSettings();
+      openModal(settingsModal);
+    });
+  }
+  if (premiumBtn) {
+    premiumBtn.addEventListener("click", function () {
+      refreshPremiumModal();
+      openModal(premiumModal);
+    });
+  }
+
+  document.querySelectorAll("[data-close-modal]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var backdrop = btn.closest(".modal-backdrop");
+      closeModal(backdrop);
+    });
+  });
+
+  [settingsModal, premiumModal].forEach(function (modal) {
+    if (!modal) return;
+    modal.addEventListener("click", function (e) {
+      if (e.target === modal) closeModal(modal);
+    });
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      closeModal(settingsModal);
+      closeModal(premiumModal);
+    }
+  });
+
+  if (contrastToggle) {
+    contrastToggle.addEventListener("click", function () {
+      a11y.contrast = a11y.contrast === "high" ? "normal" : "high";
+      STORE.set("a11y", a11y);
+      applyA11y();
+      refreshSettings();
+    });
+  }
+  textSizeButtons.forEach(function (b) {
+    b.addEventListener("click", function () {
+      a11y.textsize = b.getAttribute("data-textsize");
+      STORE.set("a11y", a11y);
+      applyA11y();
+      refreshSettings();
+    });
+  });
+
+  if (settingsPremiumBtn) {
+    settingsPremiumBtn.addEventListener("click", function () {
+      closeModal(settingsModal);
+      refreshPremiumModal();
+      openModal(premiumModal);
+    });
+  }
+  if (premiumAction) {
+    premiumAction.addEventListener("click", function () {
+      premium = !premium;
+      STORE.set("premium", premium);
+      applyPremium();
+      refreshPremiumModal();
+      refreshSettings();
+    });
+  }
+
+  if (clearDataBtn) {
+    clearDataBtn.addEventListener("click", function () {
+      savedProviders = {};
+      savedTrials = {};
+      STORE.set("savedProviders", savedProviders);
+      STORE.set("savedTrials", savedTrials);
+      if (providerList) renderProviders();
+      if (trialList) renderTrials();
+      refreshSettings();
+      clearDataBtn.textContent = "Cleared";
+      window.setTimeout(function () {
+        clearDataBtn.textContent = "Clear";
+      }, 1600);
+    });
+  }
+
+  /* ========================================================
+     12. ONBOARDING (first visit)
+     ======================================================== */
+  var onboarding = document.getElementById("onboarding");
+  var onboardStep1 = document.getElementById("onboard-step-1");
+  var onboardStep2 = document.getElementById("onboard-step-2");
+  var onboardNext = document.getElementById("onboard-next");
+  var onboardBack = document.getElementById("onboard-back");
+  var onboardFinish = document.getElementById("onboard-finish");
+  var consentCheckbox = document.getElementById("consent-checkbox");
+
+  if (onboarding && onboardNext && onboardFinish) {
+    onboardNext.addEventListener("click", function () {
+      onboardStep1.hidden = true;
+      onboardStep2.hidden = false;
+    });
+    onboardBack.addEventListener("click", function () {
+      onboardStep2.hidden = true;
+      onboardStep1.hidden = false;
+    });
+    consentCheckbox.addEventListener("change", function () {
+      onboardFinish.disabled = !consentCheckbox.checked;
+    });
+    onboardFinish.addEventListener("click", function () {
+      STORE.set("onboarded", true);
+      onboarding.classList.remove("show");
+      onboarding.setAttribute("aria-hidden", "true");
+    });
+  }
+
+  /* ========================================================
+     13. INITIAL RENDER
+     ======================================================== */
+  (function restoreActiveCondition() {
+    var idx = STORE.get("activeCondition", -1);
+    if (typeof idx === "number" && idx >= 0 && CONDITIONS[idx]) {
+      activeCondition = CONDITIONS[idx];
+      if (conditionSelect) conditionSelect.value = String(idx);
+    }
+  })();
+
+  applyA11y();
+  applyPremium();
+  renderPersoBanners();
   if (providerList) renderProviders();
   if (pharmacyList) renderPharmacies();
   if (trialList) renderTrials();
   if (resourceList) renderResources();
+
+  if (onboarding && STORE.get("onboarded", false) !== true) {
+    onboarding.classList.add("show");
+    onboarding.setAttribute("aria-hidden", "false");
+  }
 })();

@@ -9,7 +9,7 @@
       content="Zuuno — a clinician-grade medical assistant and resource hub for people managing a known diagnosis."
     />
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
-    <link rel="stylesheet" href="style.css?v=6" />
+    <link rel="stylesheet" href="style.css?v=7" />
     <title>Zuuno — Medical Assistant</title>
   </head>
   <body>
@@ -106,6 +106,8 @@
             <p>Find specialists near you, matched to your condition and care needs.</p>
           </div>
 
+          <div id="provider-perso"></div>
+
           <div class="filter-bar">
             <select class="select" id="provider-location" aria-label="Search area">
               <option value="all">All locations</option>
@@ -198,6 +200,8 @@
             <h1>Clinical Trials Watch</h1>
             <p>Search active studies and watch the ones that fit your condition.</p>
           </div>
+
+          <div id="trial-perso"></div>
 
           <div class="filter-bar">
             <div class="search-box">
@@ -315,6 +319,182 @@
       </nav>
     </div>
 
-    <script src="script.js?v=6"></script>
+    <!-- ============ ONBOARDING (first visit) ============ -->
+    <div class="onboarding" id="onboarding" aria-hidden="true">
+      <div class="onboard-card">
+        <div class="onboard-step" id="onboard-step-1">
+          <img class="brand-mark onboard-logo" src="assets/favicon.svg" alt="" width="56" height="56" />
+          <h1>Welcome to Zuuno</h1>
+          <p class="onboard-lead">
+            Your clinician-grade medical assistant for understanding a condition you have
+            already been diagnosed with.
+          </p>
+          <ul class="onboard-points">
+            <li>
+              <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.6-.8L3 21l1.9-5.7A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z" />
+              </svg>
+              <span>Cited, evidence-based answers about your condition</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                <rect x="2" y="7" width="20" height="14" rx="2" />
+                <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                <path d="M12 11v4M10 13h4" />
+              </svg>
+              <span>Find providers, pharmacies, and infusion centers</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                <path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3" />
+                <path d="M7 15h10" />
+              </svg>
+              <span>Discover and watch relevant clinical trials</span>
+            </li>
+          </ul>
+          <button class="btn btn-primary btn-block" id="onboard-next" type="button">Continue</button>
+        </div>
+
+        <div class="onboard-step" id="onboard-step-2" hidden>
+          <h1>Before you begin</h1>
+          <div class="disclaimer" role="note">
+            <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 16v-4M12 8h.01" />
+            </svg>
+            <span>This app is not a substitute for medical advice. Consult a licensed provider.</span>
+          </div>
+          <p class="onboard-lead">
+            Zuuno gives general educational information. It does not diagnose conditions,
+            prescribe treatment, or replace a visit with your doctor.
+          </p>
+          <label class="consent-row" for="consent-checkbox">
+            <input type="checkbox" id="consent-checkbox" />
+            <span>
+              I understand Zuuno is for education only and is not a substitute for
+              professional medical care.
+            </span>
+          </label>
+          <button class="btn btn-primary btn-block" id="onboard-finish" type="button" disabled>
+            Get started
+          </button>
+          <button class="btn btn-secondary btn-block" id="onboard-back" type="button">Back</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SETTINGS MODAL ============ -->
+    <div class="modal-backdrop" id="settings-modal">
+      <div class="modal" role="dialog" aria-modal="true" aria-label="Settings">
+        <div class="modal-head">
+          <h2>Settings</h2>
+          <button class="icon-btn" type="button" data-close-modal aria-label="Close settings">
+            <svg viewBox="0 0 24 24" class="ic" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="section-label">Accessibility</p>
+          <div class="set-row">
+            <div class="set-text">
+              <strong>High contrast</strong>
+              <span>Stronger colors and borders</span>
+            </div>
+            <button class="pill-btn" id="contrast-toggle" type="button">Off</button>
+          </div>
+          <div class="set-row">
+            <div class="set-text">
+              <strong>Text size</strong>
+              <span>Adjust text across the app</span>
+            </div>
+            <div class="chip-row">
+              <button class="pill-btn" type="button" data-textsize="small">A-</button>
+              <button class="pill-btn on" type="button" data-textsize="normal">A</button>
+              <button class="pill-btn" type="button" data-textsize="large">A+</button>
+            </div>
+          </div>
+
+          <p class="section-label">Subscription</p>
+          <div class="set-row">
+            <div class="set-text">
+              <strong id="settings-plan">Zuuno Free</strong>
+              <span id="settings-plan-sub">Upgrade for premium features</span>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="settings-premium-btn" type="button">
+              View
+            </button>
+          </div>
+
+          <p class="section-label">Your data</p>
+          <div class="set-row">
+            <div class="set-text">
+              <strong>Saved items</strong>
+              <span id="settings-saved">No saved items</span>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="clear-data-btn" type="button">Clear</button>
+          </div>
+
+          <p class="section-label">About</p>
+          <p class="set-about">
+            Zuuno v1.0 — a student capstone project. Educational reference information only;
+            not a substitute for professional medical care.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PREMIUM MODAL ============ -->
+    <div class="modal-backdrop" id="premium-modal">
+      <div class="modal" role="dialog" aria-modal="true" aria-label="Zuuno Premium">
+        <div class="modal-head">
+          <h2>Zuuno Premium</h2>
+          <button class="icon-btn" type="button" data-close-modal aria-label="Close">
+            <svg viewBox="0 0 24 24" class="ic" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="premium-hero">
+            <div class="premium-crown">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z" />
+                <path d="M5 20h14" />
+              </svg>
+            </div>
+            <h3 id="premium-headline">Unlock the full Zuuno experience</h3>
+            <p class="premium-price" id="premium-price">$6.99 <span>/ month</span></p>
+          </div>
+          <ul class="perk-list">
+            <li>
+              <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+              <span>In-depth chatbot detail and interactive diagrams</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+              <span>Downloadable PDF condition reports</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+              <span>Clinical-trial status alerts</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+              <span>Advanced provider and pharmacy filters</span>
+            </li>
+          </ul>
+          <p class="premium-note">
+            The free tier — chatbot, maps, trials, and resources — always stays available.
+          </p>
+        </div>
+        <div class="modal-foot">
+          <button class="btn btn-secondary" type="button" data-close-modal>Maybe later</button>
+          <button class="btn btn-primary" id="premium-action" type="button">Start Premium</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js?v=7"></script>
   </body>
 </html>

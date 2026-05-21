@@ -191,16 +191,36 @@ Settings and Premium icons in the header still do not open anything.
 
 ---
 
-## App version #7
+## App version #7 — Settings, Premium, Onboarding &amp; Personalization  *(Milestone 3)*
 
 **Changes in visual layout**
 
+Added a welcome screen that first-time visitors see before entering the app,
+a Settings panel that slides up from the gear icon, and a Premium popup that
+opens from the crown icon. A "Personalized for [your condition]" banner now
+appears on the Providers and Trials tabs.
 
 **Changes in functionality**
 
+Built the final set of cross-cutting features:
+
+- Onboarding — first-time visitors see a welcome screen and must accept the
+  medical disclaimer before entering the app.
+- Settings (gear icon) — high-contrast mode and three text sizes for
+  accessibility, a subscription row, and a button to clear saved data.
+- Premium (crown icon) — a popup that explains and turns a Premium
+  subscription on or off.
+- The app now remembers saved providers, watched trials, accessibility
+  settings, and the disclaimer between visits using the browser's storage.
+- Personalization — the condition picked in the chatbot now tailors the
+  Providers and Trials tabs: relevant specialists and matching trials are
+  shown first.
 
 **What isn't working well**
 
+The maps are still placeholder graphics. The Premium subscription is a
+working on/off toggle, but the premium-only perks it lists are not yet
+separately locked. Downloadable PDF reports are not built.
 
 ---
 
