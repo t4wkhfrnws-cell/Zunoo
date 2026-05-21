@@ -2,18 +2,661 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#0e7c86" />
     <meta
       name="description"
-      content="Zuuno — clinician-grade medical assistant and resource hub. Cited answers, provider and pharmacy maps, clinical trials, and nonprofit resources."
+      content="Zuuno — a clinician-grade medical assistant and resource hub for people managing a known diagnosis."
     />
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+    <link rel="stylesheet" href="style.css" />
     <title>Zuuno — Medical Assistant</title>
   </head>
   <body>
-    <div id="root"></div>
-    <noscript>Zuuno requires JavaScript to run. Please enable it in your browser.</noscript>
-    <script type="module" src="/src/main.tsx"></script>
+    <!--
+      ZUUNO — Front-End Skeleton (Milestone 1).
+      Every screen is laid out and styled, but nothing is interactive yet.
+      All five screens are stacked on one page so the full design is reviewable.
+      JavaScript wiring (tab navigation, etc.) arrives in Milestone 2.
+    -->
+    <div class="app">
+      <!-- ============ HEADER ============ -->
+      <header class="app-header" id="app-header">
+        <div class="brand">
+          <img class="brand-mark" src="assets/favicon.svg" alt="" width="34" height="34" />
+          <span class="brand-text">
+            Zuuno
+            <small>Medical Assistant</small>
+          </span>
+        </div>
+        <div class="header-spacer"></div>
+        <button class="icon-btn" id="premium-btn" type="button" aria-label="Zuuno Premium">
+          <svg viewBox="0 0 24 24" class="ic" aria-hidden="true">
+            <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z" />
+            <path d="M5 20h14" />
+          </svg>
+        </button>
+        <button class="icon-btn" id="settings-btn" type="button" aria-label="Settings">
+          <svg viewBox="0 0 24 24" class="ic" aria-hidden="true">
+            <path d="M20 7h-9M14 17H5" />
+            <circle cx="17" cy="17" r="3" />
+            <circle cx="7" cy="7" r="3" />
+          </svg>
+        </button>
+      </header>
+
+      <!-- ============ MAIN ============ -->
+      <main class="app-main" id="app-main">
+        <!-- ====================================================== -->
+        <!-- SCREEN 1 — CHATBOT                                      -->
+        <!-- ====================================================== -->
+        <section class="screen" id="screen-chatbot" aria-label="Medical Assistant">
+          <div class="screen-head">
+            <h1>Medical Assistant</h1>
+            <p>Evidence-based, cited answers for conditions you already know you have.</p>
+          </div>
+
+          <div class="disclaimer" role="note">
+            <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 16v-4M12 8h.01" />
+            </svg>
+            <span>This app is not a substitute for medical advice. Consult a licensed provider.</span>
+          </div>
+
+          <div class="chat-stream" id="chat-stream">
+            <!-- Sample user message -->
+            <div class="msg-user">Tell me about systemic lupus erythematosus</div>
+
+            <!-- Sample structured answer card -->
+            <article class="answer-card">
+              <div class="answer-head">
+                <div class="answer-title-row">
+                  <h2>Systemic Lupus Erythematosus</h2>
+                  <span class="chip chip-teal">ICD-10 M32.9</span>
+                </div>
+                <div class="confidence" title="Match confidence">
+                  <span class="confidence-track"><span class="confidence-fill" style="width: 92%"></span></span>
+                  <span>92%</span>
+                </div>
+                <p class="answer-summary">
+                  Systemic lupus erythematosus is a chronic multisystem autoimmune disease driven
+                  by autoantibodies and immune-complex deposition, with a relapsing–remitting course.
+                </p>
+              </div>
+
+              <div class="answer-sections">
+                <!-- Section: Symptoms (expanded) -->
+                <div class="acc acc-open">
+                  <button class="acc-head" type="button" aria-expanded="true">
+                    <span class="acc-ic">
+                      <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                      </svg>
+                    </span>
+                    <span class="acc-title">Symptoms &amp; Signs</span>
+                    <svg viewBox="0 0 24 24" class="ic-sm acc-chevron" aria-hidden="true">
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  <div class="acc-body">
+                    <ul class="bullets">
+                      <li>Fatigue and generalized malaise</li>
+                      <li>Joint pain and morning stiffness, often symmetric</li>
+                      <li>Photosensitive rashes, including the malar (butterfly) rash</li>
+                      <li>Recurrent low-grade fevers</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- Section: Medications (expanded) -->
+                <div class="acc acc-open">
+                  <button class="acc-head" type="button" aria-expanded="true">
+                    <span class="acc-ic">
+                      <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                        <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" />
+                        <path d="m8.5 8.5 7 7" />
+                      </svg>
+                    </span>
+                    <span class="acc-title">Medications</span>
+                    <svg viewBox="0 0 24 24" class="ic-sm acc-chevron" aria-hidden="true">
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  <div class="acc-body">
+                    <span class="med-label first">First-line</span>
+                    <ul class="bullets">
+                      <li>Hydroxychloroquine for nearly all patients to reduce flares</li>
+                      <li>NSAIDs for mild musculoskeletal symptoms</li>
+                    </ul>
+                    <span class="med-label second">Second-line</span>
+                    <ul class="bullets">
+                      <li>Immunosuppressants such as mycophenolate or azathioprine</li>
+                      <li>Biologics (belimumab, anifrolumab) for active disease</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- Section: Pathophysiology (collapsed, premium) -->
+                <div class="acc">
+                  <button class="acc-head" type="button" aria-expanded="false">
+                    <span class="acc-ic">
+                      <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                        <circle cx="5" cy="6" r="2.5" />
+                        <circle cx="19" cy="6" r="2.5" />
+                        <circle cx="12" cy="18" r="2.5" />
+                        <path d="M7 7.5 10.5 16M17 7.5 13.5 16M7 6h10" />
+                      </svg>
+                    </span>
+                    <span class="acc-title">Pathophysiology</span>
+                    <span class="chip chip-violet">Premium</span>
+                    <svg viewBox="0 0 24 24" class="ic-sm acc-chevron" aria-hidden="true">
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Section: Citations (collapsed) -->
+                <div class="acc">
+                  <button class="acc-head" type="button" aria-expanded="false">
+                    <span class="acc-ic">
+                      <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                      </svg>
+                    </span>
+                    <span class="acc-title">Citations (4)</span>
+                    <svg viewBox="0 0 24 24" class="ic-sm acc-chevron" aria-hidden="true">
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="answer-actions">
+                <button class="btn btn-secondary btn-sm" type="button">
+                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <path d="M7 10l5 5 5-5" />
+                    <path d="M12 15V3" />
+                  </svg>
+                  Download PDF
+                </button>
+                <button class="btn btn-secondary btn-sm" type="button">
+                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <path d="m8.6 13.5 6.8 4M15.4 6.5 8.6 10.5" />
+                  </svg>
+                  Share
+                </button>
+              </div>
+            </article>
+          </div>
+
+          <div class="suggested" id="suggested-prompts">
+            <p class="section-label">Try asking</p>
+            <div class="chip-row">
+              <button class="suggest-chip" type="button">First-line medications for rheumatoid arthritis</button>
+              <button class="suggest-chip" type="button">What is the prognosis of heart failure?</button>
+              <button class="suggest-chip" type="button">Symptoms of Crohn's disease</button>
+            </div>
+          </div>
+
+          <div class="composer">
+            <select class="condition-select" id="condition-select" aria-label="Condition context">
+              <option value="">No condition selected (auto-detect)</option>
+              <option value="lupus">Systemic Lupus Erythematosus · M32.9</option>
+              <option value="ra">Rheumatoid Arthritis · M06.9</option>
+              <option value="t2d">Type 2 Diabetes Mellitus · E11.9</option>
+            </select>
+            <div class="composer-row">
+              <textarea
+                class="chat-input"
+                id="chat-input"
+                rows="1"
+                placeholder="Ask about a condition, its treatment, prognosis…"
+                aria-label="Message Zuuno"
+              ></textarea>
+              <button class="send-btn" id="chat-send" type="button" aria-label="Send message">
+                <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                  <path d="m22 2-7 20-4-9-9-4z" />
+                  <path d="M22 2 11 13" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ====================================================== -->
+        <!-- SCREEN 2 — MEDICAL PROFESSIONAL MAP                     -->
+        <!-- ====================================================== -->
+        <section class="screen" id="screen-providers" aria-label="Medical Professionals">
+          <div class="screen-head">
+            <h1>Medical Professionals</h1>
+            <p>Find specialists near you, matched to your condition and care needs.</p>
+          </div>
+
+          <div class="filter-bar">
+            <select class="select" id="provider-location" aria-label="Search area">
+              <option>New York, NY</option>
+              <option>Boston, MA</option>
+              <option>Chicago, IL</option>
+            </select>
+            <select class="select" id="provider-radius" aria-label="Search radius">
+              <option>25 mi</option>
+              <option selected>50 mi</option>
+              <option>100 mi</option>
+            </select>
+            <button class="pill-btn" id="provider-filter-btn" type="button">
+              <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                <path d="M22 3H2l8 9.5V19l4 2v-8.5z" />
+              </svg>
+              Filters
+            </button>
+          </div>
+
+          <div class="map-box" id="provider-map" role="img" aria-label="Map placeholder">
+            <div class="map-grid"></div>
+            <span class="map-pin" style="top: 38%; left: 30%"></span>
+            <span class="map-pin" style="top: 56%; left: 62%"></span>
+            <span class="map-pin" style="top: 24%; left: 70%"></span>
+            <span class="map-label">Interactive provider map</span>
+          </div>
+
+          <div class="results-meta"><span>2 providers found</span><span>1 offers telehealth</span></div>
+
+          <div class="result-list">
+            <article class="card result-card">
+              <div class="result-top">
+                <div>
+                  <h3 class="result-name">Dr. Elena Marquez, MD</h3>
+                  <p class="result-sub">Rheumatology</p>
+                </div>
+                <button class="star-btn" type="button" aria-label="Save provider">
+                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                    <path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 6.9L12 18.8 5.9 21l1.2-6.9-5-4.9 6.9-1z" />
+                  </svg>
+                </button>
+              </div>
+              <div class="chip-row">
+                <span class="chip chip-teal">2.4 mi</span>
+                <span class="chip chip-blue">Telehealth</span>
+                <span class="chip chip-green">Accepting patients</span>
+              </div>
+              <div class="result-rows">
+                <p class="result-row">
+                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  425 Madison Ave, Suite 1100, New York, NY 10017
+                </p>
+                <p class="result-row">
+                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                  (212) 555-0143
+                </p>
+              </div>
+              <div class="result-actions">
+                <button class="btn btn-primary btn-sm" type="button">Call</button>
+                <button class="btn btn-secondary btn-sm" type="button">Directions</button>
+              </div>
+            </article>
+
+            <article class="card result-card">
+              <div class="result-top">
+                <div>
+                  <h3 class="result-name">Dr. Samuel Adeyemi, MD</h3>
+                  <p class="result-sub">Rheumatology</p>
+                </div>
+                <button class="star-btn" type="button" aria-label="Save provider">
+                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                    <path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 6.9L12 18.8 5.9 21l1.2-6.9-5-4.9 6.9-1z" />
+                  </svg>
+                </button>
+              </div>
+              <div class="chip-row">
+                <span class="chip chip-teal">5.1 mi</span>
+                <span class="chip chip-green">Accepting patients</span>
+              </div>
+              <div class="result-rows">
+                <p class="result-row">
+                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  1611 Harrison St, New York, NY 10013
+                </p>
+                <p class="result-row">
+                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                  (212) 555-0227
+                </p>
+              </div>
+              <div class="result-actions">
+                <button class="btn btn-primary btn-sm" type="button">Call</button>
+                <button class="btn btn-secondary btn-sm" type="button">Directions</button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- ====================================================== -->
+        <!-- SCREEN 3 — PHARMACY & INFUSION MAP                      -->
+        <!-- ====================================================== -->
+        <section class="screen" id="screen-pharmacy" aria-label="Pharmacy and Infusion">
+          <div class="screen-head">
+            <h1>Pharmacy &amp; Infusion</h1>
+            <p>Local and online pharmacies, plus infusion centers tagged by specialty.</p>
+          </div>
+
+          <div class="card pad">
+            <p class="section-label">Check medication availability</p>
+            <div class="input-row">
+              <input
+                class="input"
+                id="med-check-input"
+                type="text"
+                placeholder="Enter a medication name"
+              />
+              <button class="btn btn-primary" id="med-check-btn" type="button">Check</button>
+            </div>
+          </div>
+
+          <div class="chip-row tabs-mini" id="pharmacy-kinds">
+            <button class="pill-btn on" type="button">All</button>
+            <button class="pill-btn" type="button">Retail</button>
+            <button class="pill-btn" type="button">Specialty</button>
+            <button class="pill-btn" type="button">Infusion centers</button>
+          </div>
+
+          <div class="map-box" id="pharmacy-map" role="img" aria-label="Map placeholder">
+            <div class="map-grid"></div>
+            <span class="map-pin pharmacy" style="top: 42%; left: 40%"></span>
+            <span class="map-pin infusion" style="top: 60%; left: 66%"></span>
+            <span class="map-label">Pharmacy &amp; infusion map</span>
+          </div>
+
+          <div class="result-list">
+            <article class="card result-card">
+              <div class="result-top">
+                <div>
+                  <h3 class="result-name">Midtown Community Pharmacy</h3>
+                  <p class="result-sub">CVS Pharmacy · Retail pharmacy</p>
+                </div>
+              </div>
+              <div class="chip-row">
+                <span class="chip chip-teal">1.1 mi</span>
+                <span class="chip chip-green">Open 24 hours</span>
+                <span class="chip">Delivery</span>
+              </div>
+              <div class="result-rows">
+                <p class="result-row">
+                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 6v6l4 2" />
+                  </svg>
+                  Mon–Fri 8 AM–10 PM, Sat–Sun 9 AM–7 PM
+                </p>
+                <p class="result-row">
+                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                  (212) 555-0301
+                </p>
+              </div>
+              <div class="result-actions">
+                <button class="btn btn-primary btn-sm" type="button">Call pharmacy</button>
+                <button class="btn btn-secondary btn-sm" type="button">Directions</button>
+              </div>
+            </article>
+
+            <article class="card result-card">
+              <div class="result-top">
+                <div>
+                  <h3 class="result-name">East River Infusion Center</h3>
+                  <p class="result-sub">Independent · Infusion center</p>
+                </div>
+              </div>
+              <div class="chip-row">
+                <span class="chip chip-teal">3.0 mi</span>
+                <span class="chip chip-violet">Infusion center</span>
+              </div>
+              <div class="result-rows">
+                <p class="result-row">
+                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                    <path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3" />
+                    <path d="M7 15h10" />
+                  </svg>
+                  Infusion specialties: Rheumatology, Neurology, Immunology
+                </p>
+              </div>
+              <div class="result-actions">
+                <button class="btn btn-primary btn-sm" type="button">Call</button>
+                <button class="btn btn-secondary btn-sm" type="button">Directions</button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- ====================================================== -->
+        <!-- SCREEN 4 — CLINICAL TRIALS WATCH                        -->
+        <!-- ====================================================== -->
+        <section class="screen" id="screen-trials" aria-label="Clinical Trials Watch">
+          <div class="screen-head">
+            <h1>Clinical Trials Watch</h1>
+            <p>Search active studies and watch the ones that fit your condition.</p>
+          </div>
+
+          <div class="filter-bar">
+            <div class="search-box">
+              <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+              <input
+                class="search-input"
+                id="trial-search"
+                type="text"
+                placeholder="Search trials by condition…"
+              />
+            </div>
+            <button class="btn btn-primary" id="trial-search-btn" type="button">Search</button>
+          </div>
+
+          <div class="chip-row tabs-mini">
+            <button class="pill-btn on" type="button">Search results</button>
+            <button class="pill-btn" type="button">Watching (0)</button>
+          </div>
+
+          <div class="result-list">
+            <article class="card result-card">
+              <div class="result-top">
+                <div>
+                  <h3 class="result-name">Investigational Biologic for Moderate-to-Severe Lupus</h3>
+                  <p class="result-sub">NCT05000001 · Academic Rheumatology Research Network</p>
+                </div>
+                <button class="star-btn" type="button" aria-label="Watch trial">
+                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                    <path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 6.9L12 18.8 5.9 21l1.2-6.9-5-4.9 6.9-1z" />
+                  </svg>
+                </button>
+              </div>
+              <div class="chip-row">
+                <span class="chip chip-teal">Phase 3</span>
+                <span class="chip chip-green">Recruiting</span>
+                <span class="chip">2 sites</span>
+              </div>
+              <div class="result-rows">
+                <p class="result-row">
+                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                    <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" />
+                    <path d="m8.5 8.5 7 7" />
+                  </svg>
+                  Investigational biologic · Placebo · Standard of care
+                </p>
+              </div>
+              <div class="result-actions">
+                <button class="btn btn-secondary btn-sm" type="button">More detail</button>
+                <button class="btn btn-primary btn-sm" type="button">Save &amp; watch</button>
+              </div>
+            </article>
+
+            <article class="card result-card">
+              <div class="result-top">
+                <div>
+                  <h3 class="result-name">Treat-to-Target Strategy Trial in Early Rheumatoid Arthritis</h3>
+                  <p class="result-sub">NCT05000002 · National Rheumatology Consortium</p>
+                </div>
+                <button class="star-btn" type="button" aria-label="Watch trial">
+                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                    <path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 6.9L12 18.8 5.9 21l1.2-6.9-5-4.9 6.9-1z" />
+                  </svg>
+                </button>
+              </div>
+              <div class="chip-row">
+                <span class="chip chip-teal">Phase 4</span>
+                <span class="chip chip-green">Recruiting</span>
+                <span class="chip">2 sites</span>
+              </div>
+              <div class="result-actions">
+                <button class="btn btn-secondary btn-sm" type="button">More detail</button>
+                <button class="btn btn-primary btn-sm" type="button">Save &amp; watch</button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- ====================================================== -->
+        <!-- SCREEN 5 — RESEARCH & NONPROFITS                        -->
+        <!-- ====================================================== -->
+        <section class="screen" id="screen-resources" aria-label="Research and Nonprofits">
+          <div class="screen-head">
+            <h1>Research &amp; Nonprofits</h1>
+            <p>Trusted nonprofits, guidelines, peer support, and financial-aid programs.</p>
+          </div>
+
+          <div class="filter-bar">
+            <div class="search-box">
+              <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+              <input
+                class="search-input"
+                id="resource-search"
+                type="text"
+                placeholder="Search resources…"
+              />
+            </div>
+          </div>
+
+          <div class="chip-row tabs-mini" id="resource-categories">
+            <button class="pill-btn on" type="button">All</button>
+            <button class="pill-btn" type="button">Nonprofit &amp; Advocacy</button>
+            <button class="pill-btn" type="button">Patient Education</button>
+            <button class="pill-btn" type="button">Financial Aid</button>
+          </div>
+
+          <div class="result-list">
+            <article class="card result-card">
+              <div class="result-top">
+                <div>
+                  <h3 class="result-name">Lupus Foundation of America</h3>
+                  <p class="result-sub">lupus.org</p>
+                </div>
+                <span class="chip chip-teal">Nonprofit &amp; Advocacy</span>
+              </div>
+              <p class="result-text">
+                National advocacy and research organization offering education, support programs,
+                and a health-information helpline for people affected by lupus.
+              </p>
+              <div class="result-actions">
+                <button class="btn btn-primary btn-sm" type="button">Visit website</button>
+              </div>
+            </article>
+
+            <article class="card result-card">
+              <div class="result-top">
+                <div>
+                  <h3 class="result-name">MedlinePlus (U.S. National Library of Medicine)</h3>
+                  <p class="result-sub">medlineplus.gov</p>
+                </div>
+                <span class="chip chip-blue">Patient Education</span>
+              </div>
+              <p class="result-text">
+                Authoritative, plain-language health information on conditions, medications, and
+                tests from the National Institutes of Health.
+              </p>
+              <div class="result-actions">
+                <button class="btn btn-primary btn-sm" type="button">Visit website</button>
+              </div>
+            </article>
+
+            <article class="card result-card">
+              <div class="result-top">
+                <div>
+                  <h3 class="result-name">Patient Advocate Foundation</h3>
+                  <p class="result-sub">patientadvocate.org</p>
+                </div>
+                <span class="chip chip-amber">Financial Aid</span>
+              </div>
+              <p class="result-text">
+                Case-management and co-pay relief programs that help patients resolve insurance,
+                access, and medical-debt issues.
+              </p>
+              <div class="result-actions">
+                <button class="btn btn-primary btn-sm" type="button">Visit website</button>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <!-- ============ BOTTOM TAB BAR ============ -->
+      <nav class="tabbar" id="tabbar" aria-label="Primary navigation">
+        <button class="tab on" id="tab-chatbot" type="button" data-target="screen-chatbot">
+          <svg viewBox="0 0 24 24" class="ic" aria-hidden="true">
+            <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.6-.8L3 21l1.9-5.7A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z" />
+          </svg>
+          <span>Assistant</span>
+        </button>
+        <button class="tab" id="tab-providers" type="button" data-target="screen-providers">
+          <svg viewBox="0 0 24 24" class="ic" aria-hidden="true">
+            <rect x="2" y="7" width="20" height="14" rx="2" />
+            <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            <path d="M12 11v4M10 13h4" />
+          </svg>
+          <span>Providers</span>
+        </button>
+        <button class="tab" id="tab-pharmacy" type="button" data-target="screen-pharmacy">
+          <svg viewBox="0 0 24 24" class="ic" aria-hidden="true">
+            <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" />
+            <path d="m8.5 8.5 7 7" />
+          </svg>
+          <span>Pharmacy</span>
+        </button>
+        <button class="tab" id="tab-trials" type="button" data-target="screen-trials">
+          <svg viewBox="0 0 24 24" class="ic" aria-hidden="true">
+            <path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3" />
+            <path d="M7 15h10" />
+          </svg>
+          <span>Trials</span>
+        </button>
+        <button class="tab" id="tab-resources" type="button" data-target="screen-resources">
+          <svg viewBox="0 0 24 24" class="ic" aria-hidden="true">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+          </svg>
+          <span>Resources</span>
+        </button>
+      </nav>
+    </div>
+
+    <script src="script.js"></script>
   </body>
 </html>
