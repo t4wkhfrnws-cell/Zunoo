@@ -127,16 +127,34 @@ make the answer sections expand and collapse when tapped.
 
 ---
 
-## App version #5
+## App version #5 — Chatbot Complete  *(Milestone 2: The Moving Engine)*
 
 **Changes in visual layout**
 
+The chat now starts empty — the hard-coded example answer was removed, so
+answers appear only after you ask a question. Every answer card is now
+generated the same way, so they all look consistent. The condition dropdown
+now lists all 12 conditions.
 
 **Changes in functionality**
 
+Finished the chatbot. Four features were added:
+
+- Tapping any answer-section heading collapses or expands that section.
+- The "Try asking" suggestion chips now ask their question when clicked.
+- Choosing a condition from the dropdown sets it as context — if you then
+  ask a general question such as "what are the symptoms", the answer is
+  about the chosen condition.
+- A safety guardrail was added: if you ask the chatbot to diagnose you
+  ("do I have...") or to give a personal medication dose, it returns a
+  message telling you to see a licensed clinician instead of answering.
 
 **What isn't working well**
 
+The Providers, Pharmacy, Trials, and Resources tabs are still not
+interactive — their search boxes, filter buttons, maps, and result buttons
+do nothing. The Settings and Premium icons in the header do not open
+anything yet. Next: make the other tabs' searches and filters work.
 
 ---
 

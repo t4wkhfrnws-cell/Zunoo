@@ -3,16 +3,20 @@
 
    Milestone 2: The Moving Engine.
    Working features:
-     - Bottom tab-bar navigation        (versions 2-3)
-     - Chatbot: type a question and get a cited, structured answer
-       from a built-in knowledge base   (version 4)
+     - Bottom tab-bar navigation                       (v2-v3)
+     - Chatbot: type a question, get a cited answer    (v4)
+     - Answer sections expand / collapse               (v5)
+     - Suggested-question chips                        (v5)
+     - Condition selector sets context                 (v5)
+     - Safety guardrail for diagnosis / dosing requests (v5)
 
    RESERVED HTML IDs — do not rename these:
      tabs:    tab-chatbot, tab-providers, tab-pharmacy, tab-trials,
               tab-resources
      screens: screen-chatbot, screen-providers, screen-pharmacy,
               screen-trials, screen-resources
-     chat:    chat-stream, chat-input, chat-send, condition-select
+     chat:    chat-stream, chat-input, chat-send, condition-select,
+              suggested-prompts
 
    The medical content below is educational reference information only.
    It is not medical advice and does not diagnose or prescribe.
@@ -417,6 +421,12 @@
   var chatStream = document.getElementById("chat-stream");
   var chatInput = document.getElementById("chat-input");
   var chatSend = document.getElementById("chat-send");
+  var conditionSelect = document.getElementById("condition-select");
+  var suggestedPrompts = document.getElementById("suggested-prompts");
+
+  /* The condition chosen in the dropdown, used as context when the typed
+     question does not name a condition on its own. */
+  var selectedCondition = null;
 
   /* Escape user-typed text before placing it in the page. */
   function escapeHtml(str) {
@@ -469,6 +479,41 @@
       }
     }
     return best;
+  }
+
+  /* Phrases that ask Zuuno to diagnose or to give personal dosing —
+     these are refused for safety (the app educates, it does not advise). */
+  var UNSAFE_PHRASES = [
+    "do i have",
+    "do you think i have",
+    "could i have",
+    "might i have",
+    "am i having",
+    "could it be",
+    "diagnose me",
+    "diagnose my",
+    "what is wrong with me",
+    "whats wrong with me",
+    "what do i have",
+    "is this serious",
+    "should i be worried",
+    "what should i take",
+    "what medicine should i take",
+    "what dose",
+    "what dosage",
+    "how much should i take",
+    "how many mg",
+    "prescribe me",
+    "should i stop taking",
+    "can i stop taking",
+  ];
+
+  function isUnsafeQuery(query) {
+    var q = normalize(query);
+    for (var i = 0; i < UNSAFE_PHRASES.length; i++) {
+      if (q.indexOf(UNSAFE_PHRASES[i]) !== -1) return true;
+    }
+    return false;
   }
 
   /* Build a bulleted list. Content comes from the trusted knowledge base. */
@@ -557,9 +602,44 @@
     );
   }
 
-  /* Handle a sent message: show the question, then show the answer. */
-  function handleSend() {
-    var text = chatInput.value.trim();
+  /* Build the safety response shown for diagnosis or dosing requests. */
+  function guardrailCard(query) {
+    var match = findCondition(query);
+    var hint = match
+      ? "To learn about " +
+        match.condition.name +
+        ', ask an educational question such as "symptoms of ' +
+        match.condition.name +
+        '".'
+      : "Zuuno explains conditions you have already been diagnosed with — try naming one.";
+    return (
+      '<article class="answer-card">' +
+      '<div class="answer-head" style="border-bottom:none">' +
+      '<div class="answer-title-row"><h2>A clinician is needed for this</h2></div>' +
+      '<p class="answer-summary">Zuuno provides general education about medical conditions. ' +
+      "It cannot diagnose conditions or recommend personal treatment or doses. Please see a " +
+      "licensed healthcare professional for a diagnosis or prescription.</p>" +
+      '<p class="answer-summary">' +
+      hint +
+      "</p></div></article>"
+    );
+  }
+
+  /* Decide which response a message should receive. */
+  function respondTo(text) {
+    if (isUnsafeQuery(text)) {
+      return guardrailCard(text);
+    }
+    var match = findCondition(text);
+    if (!match && selectedCondition) {
+      match = { condition: selectedCondition, score: 0.95 };
+    }
+    return match ? answerCard(match.condition, match.score) : noMatchCard();
+  }
+
+  /* Add a question and its answer to the chat. */
+  function sendMessage(text) {
+    text = String(text).trim();
     if (!text) return;
 
     chatStream.insertAdjacentHTML(
@@ -568,24 +648,62 @@
     );
     var userMessage = chatStream.lastElementChild;
 
-    var match = findCondition(text);
-    chatStream.insertAdjacentHTML(
-      "beforeend",
-      match ? answerCard(match.condition, match.score) : noMatchCard(),
-    );
+    chatStream.insertAdjacentHTML("beforeend", respondTo(text));
 
+    userMessage.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  /* Send whatever is typed in the input box. */
+  function handleSend() {
+    var text = chatInput.value.trim();
+    if (!text) return;
+    sendMessage(text);
     chatInput.value = "";
     chatInput.focus();
-    userMessage.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   if (chatStream && chatInput && chatSend) {
     chatSend.addEventListener("click", handleSend);
+
     chatInput.addEventListener("keydown", function (e) {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         handleSend();
       }
+    });
+
+    /* A3 — expand / collapse an answer section when its header is clicked.
+       Event delegation covers answer cards added later. */
+    chatStream.addEventListener("click", function (e) {
+      var head = e.target.closest(".acc-head");
+      if (!head || !chatStream.contains(head)) return;
+      var acc = head.closest(".acc");
+      if (!acc) return;
+      var isOpen = acc.classList.toggle("acc-open");
+      head.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+  }
+
+  /* A4 — suggested-question chips ask their question when clicked. */
+  if (suggestedPrompts) {
+    suggestedPrompts.addEventListener("click", function (e) {
+      var chip = e.target.closest(".suggest-chip");
+      if (!chip) return;
+      sendMessage(chip.textContent);
+    });
+  }
+
+  /* A5 — fill the condition dropdown and track the chosen condition. */
+  if (conditionSelect) {
+    for (var c = 0; c < CONDITIONS.length; c++) {
+      var option = document.createElement("option");
+      option.value = String(c);
+      option.textContent = CONDITIONS[c].name + " · " + CONDITIONS[c].icd10;
+      conditionSelect.appendChild(option);
+    }
+    conditionSelect.addEventListener("change", function () {
+      var value = conditionSelect.value;
+      selectedCondition = value === "" ? null : CONDITIONS[Number(value)];
     });
   }
 })();

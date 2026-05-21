@@ -9,15 +9,15 @@
       content="Zuuno — a clinician-grade medical assistant and resource hub for people managing a known diagnosis."
     />
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
-    <link rel="stylesheet" href="style.css?v=4" />
+    <link rel="stylesheet" href="style.css?v=5" />
     <title>Zuuno — Medical Assistant</title>
   </head>
   <body>
     <!--
-      ZUUNO — Front-End Skeleton (Milestone 1).
-      Every screen is laid out and styled, but nothing is interactive yet.
-      All five screens are stacked on one page so the full design is reviewable.
-      JavaScript wiring (tab navigation, etc.) arrives in Milestone 2.
+      ZUUNO
+      A clinician-grade medical assistant. Built as a plain HTML/CSS/JS app.
+      Tab navigation and the chatbot are interactive; other tabs are still
+      being wired up milestone by milestone (see docs/version-log.md).
     -->
     <div class="app">
       <!-- ============ HEADER ============ -->
@@ -64,136 +64,8 @@
             <span>This app is not a substitute for medical advice. Consult a licensed provider.</span>
           </div>
 
-          <div class="chat-stream" id="chat-stream">
-            <!-- Sample user message -->
-            <div class="msg-user">Tell me about systemic lupus erythematosus</div>
-
-            <!-- Sample structured answer card -->
-            <article class="answer-card">
-              <div class="answer-head">
-                <div class="answer-title-row">
-                  <h2>Systemic Lupus Erythematosus</h2>
-                  <span class="chip chip-teal">ICD-10 M32.9</span>
-                </div>
-                <div class="confidence" title="Match confidence">
-                  <span class="confidence-track"><span class="confidence-fill" style="width: 92%"></span></span>
-                  <span>92%</span>
-                </div>
-                <p class="answer-summary">
-                  Systemic lupus erythematosus is a chronic multisystem autoimmune disease driven
-                  by autoantibodies and immune-complex deposition, with a relapsing–remitting course.
-                </p>
-              </div>
-
-              <div class="answer-sections">
-                <!-- Section: Symptoms (expanded) -->
-                <div class="acc acc-open">
-                  <button class="acc-head" type="button" aria-expanded="true">
-                    <span class="acc-ic">
-                      <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
-                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                      </svg>
-                    </span>
-                    <span class="acc-title">Symptoms &amp; Signs</span>
-                    <svg viewBox="0 0 24 24" class="ic-sm acc-chevron" aria-hidden="true">
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                  <div class="acc-body">
-                    <ul class="bullets">
-                      <li>Fatigue and generalized malaise</li>
-                      <li>Joint pain and morning stiffness, often symmetric</li>
-                      <li>Photosensitive rashes, including the malar (butterfly) rash</li>
-                      <li>Recurrent low-grade fevers</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <!-- Section: Medications (expanded) -->
-                <div class="acc acc-open">
-                  <button class="acc-head" type="button" aria-expanded="true">
-                    <span class="acc-ic">
-                      <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
-                        <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" />
-                        <path d="m8.5 8.5 7 7" />
-                      </svg>
-                    </span>
-                    <span class="acc-title">Medications</span>
-                    <svg viewBox="0 0 24 24" class="ic-sm acc-chevron" aria-hidden="true">
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                  <div class="acc-body">
-                    <span class="med-label first">First-line</span>
-                    <ul class="bullets">
-                      <li>Hydroxychloroquine for nearly all patients to reduce flares</li>
-                      <li>NSAIDs for mild musculoskeletal symptoms</li>
-                    </ul>
-                    <span class="med-label second">Second-line</span>
-                    <ul class="bullets">
-                      <li>Immunosuppressants such as mycophenolate or azathioprine</li>
-                      <li>Biologics (belimumab, anifrolumab) for active disease</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <!-- Section: Pathophysiology (collapsed, premium) -->
-                <div class="acc">
-                  <button class="acc-head" type="button" aria-expanded="false">
-                    <span class="acc-ic">
-                      <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
-                        <circle cx="5" cy="6" r="2.5" />
-                        <circle cx="19" cy="6" r="2.5" />
-                        <circle cx="12" cy="18" r="2.5" />
-                        <path d="M7 7.5 10.5 16M17 7.5 13.5 16M7 6h10" />
-                      </svg>
-                    </span>
-                    <span class="acc-title">Pathophysiology</span>
-                    <span class="chip chip-violet">Premium</span>
-                    <svg viewBox="0 0 24 24" class="ic-sm acc-chevron" aria-hidden="true">
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                </div>
-
-                <!-- Section: Citations (collapsed) -->
-                <div class="acc">
-                  <button class="acc-head" type="button" aria-expanded="false">
-                    <span class="acc-ic">
-                      <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
-                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                      </svg>
-                    </span>
-                    <span class="acc-title">Citations (4)</span>
-                    <svg viewBox="0 0 24 24" class="ic-sm acc-chevron" aria-hidden="true">
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <div class="answer-actions">
-                <button class="btn btn-secondary btn-sm" type="button">
-                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <path d="M7 10l5 5 5-5" />
-                    <path d="M12 15V3" />
-                  </svg>
-                  Download PDF
-                </button>
-                <button class="btn btn-secondary btn-sm" type="button">
-                  <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
-                    <circle cx="18" cy="5" r="3" />
-                    <circle cx="6" cy="12" r="3" />
-                    <circle cx="18" cy="19" r="3" />
-                    <path d="m8.6 13.5 6.8 4M15.4 6.5 8.6 10.5" />
-                  </svg>
-                  Share
-                </button>
-              </div>
-            </article>
-          </div>
+          <!-- Chat messages are added here by script.js -->
+          <div class="chat-stream" id="chat-stream"></div>
 
           <div class="suggested" id="suggested-prompts">
             <p class="section-label">Try asking</p>
@@ -207,9 +79,6 @@
           <div class="composer">
             <select class="condition-select" id="condition-select" aria-label="Condition context">
               <option value="">No condition selected (auto-detect)</option>
-              <option value="lupus">Systemic Lupus Erythematosus · M32.9</option>
-              <option value="ra">Rheumatoid Arthritis · M06.9</option>
-              <option value="t2d">Type 2 Diabetes Mellitus · E11.9</option>
             </select>
             <div class="composer-row">
               <textarea
@@ -657,6 +526,6 @@
       </nav>
     </div>
 
-    <script src="script.js?v=4"></script>
+    <script src="script.js?v=5"></script>
   </body>
 </html>
