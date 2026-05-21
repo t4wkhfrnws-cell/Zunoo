@@ -50,16 +50,25 @@ confirmation message to the console, but adds no behavior.
 
 ---
 
-## App version #2
+## App version #2 — Tab Navigation  *(Milestone 2: The Moving Engine begins)*
 
 **Changes in visual layout**
 
+Screens are no longer stacked on one page. Only one screen shows at a time,
+like a real tabbed app. The active tab in the bottom bar is highlighted in teal.
 
 **Changes in functionality**
 
+The bottom tab bar now works. Clicking a tab (Assistant, Providers, Pharmacy,
+Trials, or Resources) switches to that screen and hides the others. The page
+jumps back to the top when switching. This was done in `script.js` only — no
+HTML or CSS was changed.
 
 **What isn't working well**
 
+Everything else is still inactive — the chatbot input, search boxes, filter
+chips, save buttons, and the maps do nothing yet. Next version: wire up the
+chatbot so it can take a typed question and show an answer.
 
 ---
 

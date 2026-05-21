@@ -1,14 +1,12 @@
 /* ============================================================
    ZUUNO — script.js
-   Milestone 1: Front-End Skeleton.
 
-   There is intentionally NO behavior wired up yet. Every button,
-   tab, and input on the page exists and is styled, but nothing
-   responds to clicks. Interactivity is added in Milestone 2
-   ("The Moving Engine").
+   Milestone 2: The Moving Engine.
+   Feature added in this version: bottom tab-bar navigation.
+   Only one screen shows at a time; clicking a tab switches to it.
 
-   RESERVED HTML IDs — do not rename these. The JavaScript added in
-   later milestones will attach event listeners to them:
+   RESERVED HTML IDs — do not rename these. The JavaScript attaches
+   event listeners to them:
 
      Layout / navigation
        app-header, app-main, tabbar
@@ -34,4 +32,33 @@
        resource-search, resource-categories
    ============================================================ */
 
-console.log("Zuuno skeleton loaded — Milestone 1 (no interactivity yet).");
+(function () {
+  "use strict";
+
+  var tabs = document.querySelectorAll(".tab");
+  var screens = document.querySelectorAll(".screen");
+
+  /* Show one screen, hide the rest, and highlight the matching tab. */
+  function showScreen(targetId) {
+    screens.forEach(function (screen) {
+      screen.style.display = screen.id === targetId ? "" : "none";
+    });
+    tabs.forEach(function (tab) {
+      tab.classList.toggle("on", tab.getAttribute("data-target") === targetId);
+    });
+    window.scrollTo(0, 0);
+  }
+
+  /* Wire each tab button to switch screens when clicked. */
+  tabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      var target = tab.getAttribute("data-target");
+      if (target) {
+        showScreen(target);
+      }
+    });
+  });
+
+  /* Start on the Assistant screen. */
+  showScreen("screen-chatbot");
+})();
