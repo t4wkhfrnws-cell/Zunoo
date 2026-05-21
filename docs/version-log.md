@@ -99,16 +99,31 @@ shown a cached version.
 
 ---
 
-## App version #4
+## App version #4 — Chatbot Answers  *(Milestone 2: The Moving Engine)*
 
 **Changes in visual layout**
 
+When you ask a question, a new answer card appears in the chat below the
+example. Each answer card shows the condition name, its ICD-10 code, a
+match-confidence bar, a short summary, and sections for symptoms,
+medications, prognosis, and citations.
 
 **Changes in functionality**
 
+The chatbot works. You type a question in the box and press Enter or click
+Send — your question appears as a message, and the app replies with a
+structured, cited answer drawn from a built-in knowledge base of 12
+conditions. It recognizes condition names, common synonyms (such as "COPD"
+or "RA"), and ICD-10 codes. If it does not recognize the condition, it shows
+an honest "not enough evidence to answer that" message instead of guessing.
 
 **What isn't working well**
 
+The answer sections do not collapse or expand yet — they are all shown open.
+The condition dropdown and the suggested-question chips are not wired up yet.
+The Download PDF and Share buttons on the example card still do nothing. The
+maps, searches, and filters on the other tabs are still inactive. Next:
+make the answer sections expand and collapse when tapped.
 
 ---
 

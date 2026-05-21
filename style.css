@@ -392,6 +392,7 @@ h3 {
   border-radius: 16px 16px 4px 16px;
   font-size: 0.9rem;
   font-weight: 500;
+  scroll-margin-top: 76px;
 }
 
 .answer-card {
