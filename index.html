@@ -10,7 +10,7 @@
     />
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
     <link rel="stylesheet" href="assets/leaflet/leaflet.css" />
-    <link rel="stylesheet" href="style.css?v=9" />
+    <link rel="stylesheet" href="style.css?v=10" />
     <title>Zuuno — Medical Assistant</title>
   </head>
   <body>
@@ -419,11 +419,19 @@
           <div class="set-row">
             <div class="set-text">
               <strong>Your conditions</strong>
-              <span id="settings-conditions">None selected</span>
+              <span>Tap to add or remove the conditions Zuuno personalizes for</span>
             </div>
           </div>
+          <div class="cond-pick" id="settings-conditions-pick"></div>
 
           <p class="section-label">Accessibility</p>
+          <div class="set-row">
+            <div class="set-text">
+              <strong>Dark mode</strong>
+              <span>Use a darker color theme</span>
+            </div>
+            <button class="pill-btn" id="darkmode-toggle" type="button">Off</button>
+          </div>
           <div class="set-row">
             <div class="set-text">
               <strong>High contrast</strong>
@@ -461,6 +469,13 @@
               <span id="settings-saved">No saved items</span>
             </div>
             <button class="btn btn-secondary btn-sm" id="clear-data-btn" type="button">Clear</button>
+          </div>
+          <div class="set-row">
+            <div class="set-text">
+              <strong>Log out</strong>
+              <span>Sign out and return to the welcome screen</span>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="logout-btn" type="button">Log out</button>
           </div>
 
           <p class="section-label">About</p>
@@ -526,6 +541,6 @@
     <div id="print-area" aria-hidden="true"></div>
 
     <script src="assets/leaflet/leaflet.js"></script>
-    <script src="script.js?v=9"></script>
+    <script src="script.js?v=10"></script>
   </body>
 </html>

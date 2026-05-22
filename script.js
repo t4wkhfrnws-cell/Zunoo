@@ -869,6 +869,7 @@
         !intent,
       ) +
       "</div>" +
+      followupChipsHtml(condition, null) +
       '<div class="answer-actions">' +
       '<button class="btn btn-secondary btn-sm" type="button" data-action="pdf" data-cond="' +
       idx +
@@ -897,6 +898,192 @@
       "</h2></div>" +
       body +
       "</div></article>"
+    );
+  }
+
+  /* ========================================================
+     5.5 CHATBOT FAQ LAYER (v10)
+     Curated short answers to the questions people actually ask.
+     Each condition has 6 universal Q&amp;A entries; a "people also
+     ask" chip row follows every answer so the conversation can
+     keep exploring.
+     ======================================================== */
+  var CONDITION_SHORT = {
+    "Systemic Lupus Erythematosus": "lupus",
+    "Rheumatoid Arthritis": "rheumatoid arthritis",
+    "Type 2 Diabetes Mellitus": "type 2 diabetes",
+    "Type 1 Diabetes Mellitus": "type 1 diabetes",
+    Asthma: "asthma",
+    "Chronic Obstructive Pulmonary Disease": "COPD",
+    Hypertension: "hypertension",
+    "Heart Failure": "heart failure",
+    Migraine: "migraine",
+    "Multiple Sclerosis": "multiple sclerosis",
+    "Crohn's Disease": "Crohn's disease",
+    Hypothyroidism: "hypothyroidism",
+  };
+
+  var FAQ_TOPICS = [
+    { id: "causes", keys: ["what cause", "causes", "why do people", "why does", "reason for"], q: function (s) { return "What causes " + s + "?"; } },
+    { id: "genetic", keys: ["genetic", "hereditary", "inherit", "run in fam", "runs in fam", "passed down"], q: function (s) { return "Is " + s + " genetic?"; } },
+    { id: "curable", keys: ["cure", "curable", "go away", "permanent", "reversible", "get rid of"], q: function (s) { return "Is " + s + " curable?"; } },
+    { id: "diagnosis", keys: ["diagnos", "tested for", "test for", "what test", "how do you know", "confirmed"], q: function (s) { return "How is " + s + " diagnosed?"; } },
+    { id: "exercise", keys: ["exercise", "work out", "workout", "physical activity", "sport", "gym", "running"], q: function (s) { return "Can I exercise with " + s + "?"; } },
+    { id: "diet", keys: ["diet", "food", "what to eat", "what should i eat", "nutrition", "drink alcohol", "what to avoid"], q: function (s) { return "What about diet and " + s + "?"; } },
+  ];
+
+  var CONDITION_FAQ = {
+    "Systemic Lupus Erythematosus": {
+      causes: "Lupus is an autoimmune disease in which the immune system attacks the body's own tissues. The exact trigger isn't known, but it involves genetic risk plus factors like sunlight, infections, hormones, and some medications.",
+      genetic: "Lupus isn't directly inherited, but genes play a role — having a relative with lupus or another autoimmune disease raises your risk. Most people with that genetic background never develop lupus.",
+      curable: "There is no cure for lupus, but it is highly treatable. Many people reach long remissions with hydroxychloroquine and, when needed, immunosuppressants or biologics.",
+      diagnosis: "Lupus is diagnosed by a clinical evaluation plus blood tests (antinuclear antibodies, anti-dsDNA, complement levels), urinalysis, and assessment of organ involvement. It often takes time and specialist input.",
+      exercise: "Moderate exercise is encouraged — it helps fatigue, joints, mood, and heart health. Ease off during flares and protect your skin from sun exposure.",
+      diet: "There's no specific lupus diet, but a balanced diet rich in fruits, vegetables, whole grains, and omega-3 fats is recommended. Avoid alfalfa supplements, keep up vitamin D, and limit alcohol.",
+    },
+    "Rheumatoid Arthritis": {
+      causes: "RA is an autoimmune disease — the immune system attacks the joint lining. The exact cause is unknown, but it combines genetic susceptibility with triggers like smoking, gum disease, and infections.",
+      genetic: "RA isn't inherited in a simple pattern, but certain genes (especially HLA-DRB1) raise risk. Family history modestly increases your chance, but most people with RA have no affected relatives.",
+      curable: "RA can't be cured, but modern medications — methotrexate, biologics, JAK inhibitors — can put it into deep remission. Starting treatment early is key to preventing joint damage.",
+      diagnosis: "RA is diagnosed clinically with symptoms (symmetric joint swelling, morning stiffness over an hour) plus blood tests (rheumatoid factor, anti-CCP, inflammatory markers) and imaging.",
+      exercise: "Exercise is strongly recommended — gentle aerobic activity, swimming, cycling, and range-of-motion work reduce stiffness and protect joints. Skip high-impact activity during active flares.",
+      diet: "No diet cures RA, but a Mediterranean-style pattern (vegetables, fish, olive oil, whole grains) is linked to less inflammation. Smoking and heavy alcohol worsen RA.",
+    },
+    "Type 2 Diabetes Mellitus": {
+      causes: "Type 2 diabetes develops when the body becomes resistant to insulin and the pancreas can't keep up. Major contributors are excess weight, inactivity, genetics, age, and some ethnic backgrounds.",
+      genetic: "Genetics matter — a parent or sibling with type 2 diabetes roughly doubles your risk. But lifestyle has a big impact on whether and when the genes lead to disease.",
+      curable: "Type 2 diabetes isn't formally curable, but it can go into remission with significant weight loss — through diet, bariatric surgery, or newer GLP-1 medications. Most people manage it lifelong.",
+      diagnosis: "Diagnosed by a fasting glucose at 126 mg/dL or higher, an A1c of 6.5% or higher, an oral glucose tolerance test, or a random glucose at 200 mg/dL or higher with symptoms — usually confirmed with two tests.",
+      exercise: "Exercise is one of the most powerful treatments — aerobic activity and resistance training both lower blood sugar and improve insulin sensitivity. Aim for about 150 minutes a week.",
+      diet: "A diet rich in vegetables, whole grains, lean protein, and healthy fats — and low in refined carbs and sugary drinks — improves blood sugar. The Mediterranean and DASH diets work well.",
+    },
+    "Type 1 Diabetes Mellitus": {
+      causes: "Type 1 diabetes is autoimmune — the immune system destroys the insulin-producing beta cells. It usually appears in childhood or young adulthood, triggered by a mix of genetics and likely environmental factors.",
+      genetic: "There's a genetic component, but type 1 isn't simply hereditary — most people who develop it have no family history. Certain HLA genes raise risk, and relatives have slightly elevated odds.",
+      curable: "Type 1 diabetes can't be cured. Insulin replacement is required for life. Disease-modifying immune therapies and cell therapies are active areas of research.",
+      diagnosis: "Diagnosed by high blood glucose with classic symptoms (thirst, urination, weight loss), often confirmed by positive islet autoantibodies (anti-GAD, anti-IA-2) and a low C-peptide.",
+      exercise: "Exercise is safe and encouraged — just plan around it. Adjust insulin and carbs, monitor glucose, and always carry fast-acting sugar in case of lows.",
+      diet: "There's no special diet — most people use carbohydrate counting to match insulin to meals. Balanced eating with consistent carbs makes glucose easier to control.",
+    },
+    Asthma: {
+      causes: "Asthma is caused by chronic airway inflammation that makes the airways twitchy and prone to narrowing. It comes from a mix of genetics, allergies, and environmental exposures (smoke, pollution, infections).",
+      genetic: "Asthma runs in families — a parent with asthma significantly raises your risk. But whether asthma develops depends a lot on environmental exposures (allergens, smoking, viruses).",
+      curable: "Asthma isn't curable but is very controllable. Many children's asthma improves with age, and with proper inhalers most people live without daily symptoms.",
+      diagnosis: "Diagnosed by a history of wheeze, cough, or shortness of breath plus spirometry showing airflow obstruction that reverses with a bronchodilator. Allergy testing can help find triggers.",
+      exercise: "Exercise is good for asthma. Use your reliever inhaler 15 minutes before, warm up well, and avoid cold or polluted air. Exercise-induced symptoms can be specifically managed.",
+      diet: "No asthma-specific diet, but a diet rich in fruits, vegetables, and omega-3 fats supports lung health. Keep a healthy weight and identify any food triggers (rare).",
+    },
+    "Chronic Obstructive Pulmonary Disease": {
+      causes: "COPD is most often caused by long-term smoking. Other causes include air pollution, occupational dusts and chemicals, biomass smoke, and a rare inherited alpha-1 antitrypsin deficiency.",
+      genetic: "Most COPD comes from smoking, not genes. A rare inherited condition — alpha-1 antitrypsin deficiency — causes early-onset COPD and is worth testing for in younger or never-smoker cases.",
+      curable: "COPD can't be cured, and damaged lung tissue doesn't reverse. But progression slows dramatically with quitting smoking, inhalers, and pulmonary rehabilitation.",
+      diagnosis: "Diagnosed by spirometry showing fixed airflow obstruction (FEV1/FVC under 0.70 after a bronchodilator), in someone with risk factors and symptoms.",
+      exercise: "Pulmonary rehabilitation is one of the most effective COPD treatments — it improves breathlessness, fitness, and quality of life. Don't be put off by initial shortness of breath.",
+      diet: "Keep a healthy weight — both underweight and overweight worsen COPD. Smaller, frequent meals are easier when breathing is hard. Adequate protein helps preserve muscle.",
+    },
+    Hypertension: {
+      causes: "Most hypertension is 'essential' — no single cause. It comes from a mix of genetics, age, weight, salt intake, alcohol, inactivity, and stress. Less commonly, it's caused by kidney, hormonal, or sleep-apnea conditions.",
+      genetic: "Hypertension runs in families — having parents with it roughly doubles your risk. Lifestyle factors (weight, salt, alcohol, activity) strongly affect whether it develops and how severely.",
+      curable: "Hypertension usually isn't curable but is highly controllable. With medication and lifestyle changes, blood pressure can stay in a safe range and dramatically lower stroke and heart-disease risk.",
+      diagnosis: "Diagnosed by repeated office readings at 130/80 mmHg or higher, confirmed by home monitoring or 24-hour ambulatory monitoring. A single high reading doesn't confirm it.",
+      exercise: "Regular aerobic exercise lowers blood pressure by about 5–8 mmHg. Aim for about 150 minutes a week of moderate activity. Avoid heavy weightlifting when pressure is very high.",
+      diet: "The DASH diet — rich in fruits, vegetables, whole grains, and low-fat dairy, low in sodium — is the most studied. Aim for under 2,300 mg sodium a day, limit alcohol, and keep a healthy weight.",
+    },
+    "Heart Failure": {
+      causes: "Heart failure usually develops from another heart condition — most often coronary artery disease (a past heart attack), high blood pressure, valve disease, or diabetes.",
+      genetic: "Some forms (familial cardiomyopathies) are inherited, but most heart failure isn't. Family history of heart disease still raises overall cardiovascular risk.",
+      curable: "Heart failure usually can't be cured, but modern combination therapy (ARNI, beta-blocker, MRA, SGLT2 inhibitor) markedly improves survival and quality of life. Some causes (valve disease, certain rhythm problems) are reversible.",
+      diagnosis: "Diagnosed by symptoms (shortness of breath, swelling, fatigue) plus an elevated BNP or NT-proBNP and an echocardiogram showing reduced or preserved ejection fraction.",
+      exercise: "Exercise is encouraged in stable heart failure — cardiac rehab improves symptoms and survival. Start slow, weigh yourself daily, and stop if you get chest pain or severe breathlessness.",
+      diet: "Limit sodium (about 2,000–3,000 mg/day) to reduce fluid retention. Some patients need a fluid limit. Keep a healthy weight and avoid heavy alcohol.",
+    },
+    Migraine: {
+      causes: "Migraine arises from genetically determined brain hyperexcitability. Attacks involve activation of trigeminal nerves and release of peptides like CGRP, producing the pain and the nausea, light, and sound sensitivity.",
+      genetic: "Migraine is strongly hereditary — about 60% of people with migraine have a family history. Specific gene variants raise risk, especially in migraine with aura.",
+      curable: "Migraine isn't curable, but it is highly treatable. Acute drugs (triptans, gepants) stop attacks; preventives (CGRP antibodies, topiramate, beta-blockers) reduce frequency. Many people improve dramatically.",
+      diagnosis: "Migraine is a clinical diagnosis based on the pattern of attacks (severe, often one-sided, throbbing, with nausea or light/sound sensitivity, lasting 4–72 hours). Imaging is only needed for warning features.",
+      exercise: "Regular aerobic exercise reduces migraine frequency for many people. Sudden intense activity can trigger an attack — start gently, stay hydrated, and don't skip meals.",
+      diet: "Common triggers include skipped meals, dehydration, alcohol (especially red wine), aged cheeses, chocolate, MSG, and aspartame — but triggers vary. A diary helps identify your patterns.",
+    },
+    "Multiple Sclerosis": {
+      causes: "MS is an immune-mediated disease in which the immune system attacks the myelin sheath around nerves. The trigger is unknown but involves genetic susceptibility, Epstein-Barr virus infection, low vitamin D, and smoking.",
+      genetic: "MS isn't directly inherited. Having a first-degree relative with MS raises lifetime risk to about 2–5% (vs. 0.5% in the general population), but most people with MS have no family history.",
+      curable: "MS isn't curable, but disease-modifying therapies can substantially reduce relapses and slow disability. Many people stay stable for decades on modern treatment.",
+      diagnosis: "MS is diagnosed using the McDonald criteria — a mix of clinical episodes and MRI showing characteristic lesions, sometimes with cerebrospinal fluid analysis.",
+      exercise: "Exercise is strongly beneficial — it reduces fatigue, preserves strength, and may help slow progression. Heat can transiently worsen symptoms, so swimming and cool environments work well.",
+      diet: "No specific diet has been proven to change MS, but a Mediterranean-style diet with adequate vitamin D, fruits, vegetables, and fish is generally recommended.",
+    },
+    "Crohn's Disease": {
+      causes: "Crohn's is caused by an abnormal immune response to gut bacteria in genetically susceptible people. Smoking, certain medications (NSAIDs), and infections may contribute.",
+      genetic: "Crohn's has a clear genetic component — multiple gene variants (including NOD2) raise risk. About 15% of people with Crohn's have a relative with inflammatory bowel disease.",
+      curable: "Crohn's can't be cured medically, but it can go into deep remission with biologics, immunosuppressants, and lifestyle changes. Surgery may be needed for complications, but isn't curative.",
+      diagnosis: "Diagnosed by symptoms, colonoscopy with biopsies, imaging (CT or MR enterography), and blood/stool tests. The hallmark is patchy transmural inflammation anywhere in the GI tract.",
+      exercise: "Exercise helps in Crohn's — moderate activity reduces stress, improves bone health, and may reduce inflammation. Ease off during severe flares.",
+      diet: "No single Crohn's diet works for everyone. Low-fiber or low-residue eating is often easier during flares. Identify your personal triggers; a dietitian familiar with IBD is valuable.",
+    },
+    Hypothyroidism: {
+      causes: "Worldwide, the main cause is iodine deficiency. In iodine-replete countries, it's most often Hashimoto's thyroiditis (an autoimmune attack on the thyroid). Other causes include thyroid surgery, radioiodine, and some medications.",
+      genetic: "Autoimmune thyroid disease runs in families — risk is higher if relatives have hypothyroidism or other autoimmune conditions. Women are 5–10 times more likely than men to develop it.",
+      curable: "Hypothyroidism usually isn't curable, but it's easily and effectively treated — daily levothyroxine replaces the missing hormone, and most people feel completely well at the right dose. Treatment is typically lifelong.",
+      diagnosis: "Diagnosed by a blood test showing elevated TSH and, in overt cases, a low free T4. Anti-TPO antibodies confirm Hashimoto's.",
+      exercise: "Exercise is safe and helpful once thyroid levels are normalized. Untreated hypothyroidism makes activity hard; once treated, energy returns and regular activity is encouraged.",
+      diet: "No special diet is needed. Adequate iodine (iodized salt, seafood) is enough. Take levothyroxine on an empty stomach away from calcium, iron, and coffee, which block absorption.",
+    },
+  };
+
+  function findFaq(condition, query) {
+    var answers = CONDITION_FAQ[condition.name];
+    if (!answers) return null;
+    var q = normalize(query);
+    for (var i = 0; i < FAQ_TOPICS.length; i++) {
+      var topic = FAQ_TOPICS[i];
+      if (answers[topic.id] && hasAny(q, topic.keys)) return topic;
+    }
+    return null;
+  }
+
+  function followupChipsHtml(condition, currentTopicId) {
+    var answers = CONDITION_FAQ[condition.name];
+    if (!answers) return "";
+    var short = CONDITION_SHORT[condition.name] || condition.name;
+    var chips = "";
+    var count = 0;
+    for (var i = 0; i < FAQ_TOPICS.length && count < 4; i++) {
+      var topic = FAQ_TOPICS[i];
+      if (topic.id === currentTopicId) continue;
+      if (!answers[topic.id]) continue;
+      chips +=
+        '<button class="suggest-chip" type="button">' +
+        escapeHtml(topic.q(short)) +
+        "</button>";
+      count++;
+    }
+    if (!chips) return "";
+    return (
+      '<div class="answer-followups">' +
+      '<p class="followup-label">People also ask</p>' +
+      '<div class="chip-row">' +
+      chips +
+      "</div></div>"
+    );
+  }
+
+  function faqAnswerCard(condition, topic) {
+    var short = CONDITION_SHORT[condition.name] || condition.name;
+    var answer = CONDITION_FAQ[condition.name][topic.id];
+    return (
+      '<article class="answer-card">' +
+      '<div class="answer-head">' +
+      '<div class="answer-title-row"><h2>' +
+      escapeHtml(topic.q(short)) +
+      '</h2><span class="chip chip-teal">' +
+      escapeHtml(condition.name) +
+      "</span></div>" +
+      '<p class="answer-summary">' +
+      escapeHtml(answer) +
+      "</p></div>" +
+      followupChipsHtml(condition, topic.id) +
+      "</article>"
     );
   }
 
@@ -955,6 +1142,10 @@
     }
     if (match) {
       setActiveCondition(match.condition);
+      var faqHit = findFaq(match.condition, text);
+      if (faqHit) {
+        return faqAnswerCard(match.condition, faqHit);
+      }
       return answerCard(match.condition, match.score, intent);
     }
     return noMatchCard();
@@ -1078,6 +1269,11 @@
       }
     });
     chatStream.addEventListener("click", function (e) {
+      var chip = e.target.closest(".suggest-chip");
+      if (chip && chatStream.contains(chip)) {
+        sendMessage(chip.textContent);
+        return;
+      }
       var actionBtn = e.target.closest("[data-action]");
       if (actionBtn) {
         var act = actionBtn.getAttribute("data-action");
@@ -2060,6 +2256,10 @@
       "data-contrast",
       a11y.contrast === "high" ? "high" : "normal",
     );
+    document.documentElement.setAttribute(
+      "data-theme",
+      a11y.theme === "dark" ? "dark" : "light",
+    );
     document.documentElement.style.fontSize = TEXT_SIZES[a11y.textsize] || "16px";
   }
 
@@ -2123,6 +2323,10 @@
     if (!contrastToggle) return;
     contrastToggle.textContent = a11y.contrast === "high" ? "On" : "Off";
     contrastToggle.classList.toggle("on", a11y.contrast === "high");
+    if (darkmodeToggle) {
+      darkmodeToggle.textContent = a11y.theme === "dark" ? "On" : "Off";
+      darkmodeToggle.classList.toggle("on", a11y.theme === "dark");
+    }
     textSizeButtons.forEach(function (b) {
       b.classList.toggle("on", b.getAttribute("data-textsize") === a11y.textsize);
     });
@@ -2137,10 +2341,7 @@
       pc + tc === 0
         ? "No saved items yet"
         : pc + " provider" + (pc === 1 ? "" : "s") + " and " + tc + " trial" + (tc === 1 ? "" : "s") + " saved";
-    if (settingsConditions) {
-      var names = conditionNames(profileConditions);
-      settingsConditions.textContent = names.length ? names.join(", ") : "None selected";
-    }
+    fillSettingsConditions();
     if (accountName) accountName.value = STORE.get("name", "");
   }
 
@@ -2223,6 +2424,79 @@
       window.setTimeout(function () {
         clearDataBtn.textContent = "Clear";
       }, 1600);
+    });
+  }
+
+  /* Dark mode toggle */
+  var darkmodeToggle = document.getElementById("darkmode-toggle");
+  if (darkmodeToggle) {
+    darkmodeToggle.addEventListener("click", function () {
+      a11y.theme = a11y.theme === "dark" ? "light" : "dark";
+      STORE.set("a11y", a11y);
+      applyA11y();
+      refreshSettings();
+    });
+  }
+
+  /* Edit-your-conditions picker inside Settings */
+  var settingsConditionsPick = document.getElementById("settings-conditions-pick");
+  function fillSettingsConditions() {
+    if (!settingsConditionsPick) return;
+    settingsConditionsPick.innerHTML = "";
+    for (var i = 0; i < CONDITIONS.length; i++) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "pill-btn" + (profileConditions.indexOf(i) !== -1 ? " on" : "");
+      b.setAttribute("data-cond", String(i));
+      b.textContent = CONDITIONS[i].name;
+      settingsConditionsPick.appendChild(b);
+    }
+  }
+  if (settingsConditionsPick) {
+    settingsConditionsPick.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-cond]");
+      if (!b) return;
+      var idx = Number(b.getAttribute("data-cond"));
+      var pos = profileConditions.indexOf(idx);
+      if (pos === -1) profileConditions.push(idx);
+      else profileConditions.splice(pos, 1);
+      STORE.set("profileConditions", profileConditions);
+      b.classList.toggle("on");
+      var activeIdx = activeCondition ? CONDITIONS.indexOf(activeCondition) : -1;
+      if (activeIdx === -1 || profileConditions.indexOf(activeIdx) === -1) {
+        setActiveCondition(profileConditions.length ? CONDITIONS[profileConditions[0]] : null);
+      }
+    });
+  }
+
+  /* Logout — clears account data and returns to onboarding */
+  var logoutBtn = document.getElementById("logout-btn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", function () {
+      if (logoutBtn.getAttribute("data-confirming") !== "yes") {
+        logoutBtn.setAttribute("data-confirming", "yes");
+        logoutBtn.textContent = "Tap again to confirm";
+        window.setTimeout(function () {
+          if (logoutBtn && logoutBtn.getAttribute("data-confirming") === "yes") {
+            logoutBtn.removeAttribute("data-confirming");
+            logoutBtn.textContent = "Log out";
+          }
+        }, 3000);
+        return;
+      }
+      try {
+        var keys = [];
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (k && k.indexOf("zuuno_") === 0 && k !== "zuuno_a11y") keys.push(k);
+        }
+        keys.forEach(function (kk) {
+          localStorage.removeItem(kk);
+        });
+      } catch (e) {
+        /* storage unavailable — non-fatal */
+      }
+      window.location.reload();
     });
   }
 

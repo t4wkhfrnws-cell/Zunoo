@@ -291,3 +291,33 @@ trials need an internet connection (they fall back to saved examples when
 offline). Premium perks beyond the PDF report are still not separately
 locked.
 
+
+## App version #10 — Smarter Chatbot, Dark Mode, Logout  *(Milestone 3)*
+
+**Changes in visual layout**
+
+Settings gained three new things: a dark-mode toggle, an editable condition
+picker, and a Log-out button. Chatbot answers now include a "People also
+ask" row of tappable follow-up questions. A new full dark color theme
+applies across the whole app.
+
+**Changes in functionality**
+
+- The chatbot now answers specific questions instead of just dumping the
+  full card. A curated Q&A layer of 72 short, accurate answers (6 per
+  condition × 12 conditions) covers the questions people actually ask —
+  causes, genetic, curable, diagnosis, exercise, diet. Every answer ends
+  with a "People also ask" row that lets you keep exploring.
+- Dark mode — a complete dark theme that persists between visits.
+- Edit your conditions in Settings — tap to add or remove the conditions
+  Zuuno personalizes for, anytime.
+- Log out — a two-tap confirm button signs you out and returns you to the
+  welcome screen. Your display preferences (theme, contrast, text size)
+  are kept on the device.
+
+**What isn't working well**
+
+The FAQ layer covers six universal topics per condition; questions outside
+that scope still fall back to the structured overview card. The chatbot
+remains rule-based (no generative AI), so it can only answer what's been
+written into the knowledge base.
