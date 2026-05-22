@@ -10,7 +10,7 @@
     />
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
     <link rel="stylesheet" href="assets/leaflet/leaflet.css" />
-    <link rel="stylesheet" href="style.css?v=8" />
+    <link rel="stylesheet" href="style.css?v=9" />
     <title>Zuuno — Medical Assistant</title>
   </head>
   <body>
@@ -236,6 +236,8 @@
             <p>Trusted nonprofits, guidelines, peer support, and financial-aid programs.</p>
           </div>
 
+          <div id="resource-perso"></div>
+
           <div class="filter-bar">
             <div class="search-box">
               <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
@@ -346,6 +348,30 @@
         </div>
 
         <div class="onboard-step" id="onboard-step-2" hidden>
+          <h1>Tell us about you</h1>
+          <p class="onboard-lead">
+            Optional — but it lets Zuuno personalize the whole app for you.
+          </p>
+          <label class="field-label" for="onboard-name">Your name (optional)</label>
+          <input class="input" type="text" id="onboard-name" placeholder="e.g. Alex Morgan" />
+          <label class="field-label" style="margin-top: 14px">Your condition(s)</label>
+          <p class="set-about" style="margin: 0 0 8px">
+            Select any conditions you have been diagnosed with. Zuuno will personalize the
+            chatbot, providers, trials, and resources for them.
+          </p>
+          <div class="cond-pick" id="onboard-conditions"></div>
+          <button
+            class="btn btn-primary btn-block"
+            id="onboard-next-2"
+            type="button"
+            style="margin-top: 14px"
+          >
+            Continue
+          </button>
+          <button class="btn btn-secondary btn-block" id="onboard-back-1" type="button">Back</button>
+        </div>
+
+        <div class="onboard-step" id="onboard-step-3" hidden>
           <h1>Before you begin</h1>
           <div class="disclaimer" role="note">
             <svg viewBox="0 0 24 24" class="ic-sm" aria-hidden="true">
@@ -358,8 +384,6 @@
             Zuuno gives general educational information. It does not diagnose conditions,
             prescribe treatment, or replace a visit with your doctor.
           </p>
-          <label class="field-label" for="onboard-name">Your name (optional)</label>
-          <input class="input" type="text" id="onboard-name" placeholder="e.g. Alex Morgan" />
           <label class="consent-row" for="consent-checkbox">
             <input type="checkbox" id="consent-checkbox" />
             <span>
@@ -370,7 +394,7 @@
           <button class="btn btn-primary btn-block" id="onboard-finish" type="button" disabled>
             Get started
           </button>
-          <button class="btn btn-secondary btn-block" id="onboard-back" type="button">Back</button>
+          <button class="btn btn-secondary btn-block" id="onboard-back-2" type="button">Back</button>
         </div>
       </div>
     </div>
@@ -392,6 +416,12 @@
           <p class="set-about" style="margin-top: 6px">
             Saved on this device only and shown here as your account.
           </p>
+          <div class="set-row">
+            <div class="set-text">
+              <strong>Your conditions</strong>
+              <span id="settings-conditions">None selected</span>
+            </div>
+          </div>
 
           <p class="section-label">Accessibility</p>
           <div class="set-row">
@@ -496,6 +526,6 @@
     <div id="print-area" aria-hidden="true"></div>
 
     <script src="assets/leaflet/leaflet.js"></script>
-    <script src="script.js?v=8"></script>
+    <script src="script.js?v=9"></script>
   </body>
 </html>

@@ -162,8 +162,8 @@ anything yet. Next: make the other tabs' searches and filters work.
 
 **Changes in visual layout**
 
-The Providers, Pharmacy, Trials, and Resources tabs are now built from real
-data instead of fixed examples. Each tab shows a live result count, filter
+The Providers, Pharmacy, Trials, and Resources tabs are now built from
+structured data sets instead of fixed examples. Each tab shows a live result count, filter
 controls, and a friendly "nothing found" message when a search comes up
 empty. The map placeholders now read "full version coming soon" so testers
 don't mistake them for broken features.
@@ -253,4 +253,41 @@ Built the final stretch features:
 The map needs an internet connection to load its background tiles. The
 Premium subscription and the PDF feature gating both work, but the other
 premium perks listed in the popup are not separately locked.
+
+---
+
+## App version #9 — Realism &amp; Personalization Upgrade  *(Milestone 3)*
+
+**Changes in visual layout**
+
+Onboarding is now three steps and includes a picker for choosing the
+condition(s) you have. Chatbot answers show a short intro line and a
+"typing" animation while the assistant prepares a reply. The Providers and
+Pharmacy tabs have many more listings, and the Resources tab has many more
+per condition. Settings now shows your selected conditions.
+
+**Changes in functionality**
+
+A major realism and personalization upgrade:
+
+- The chatbot is smarter — it detects what you are asking about (symptoms,
+  treatment, or prognosis) and focuses the answer on it, responds to
+  greetings, and shows a typing indicator. (It is still a rule-based
+  assistant, not a generative AI.)
+- The Clinical Trials tab now pulls real, live studies from the
+  ClinicalTrials.gov API, with the saved example trials as an offline
+  fallback.
+- Onboarding lets you select one or more conditions, and the whole app —
+  chatbot, providers, trials, and resources — personalizes to them.
+- The provider directory grew to 21 listings with ratings and practice
+  names; pharmacies grew to 14; resources grew to 32 with
+  condition-specific organizations.
+
+**What isn't working well**
+
+Provider and pharmacy listings are realistic sample data, not a live
+registry — a true provider directory would need a back-end server. Live
+trials need an internet connection (they fall back to saved examples when
+offline). Premium perks beyond the PDF report are still not separately
+locked.
 
