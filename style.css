@@ -709,56 +709,30 @@ h3 {
   margin-bottom: 12px;
 }
 
-/* ---------- Map placeholder ---------- */
+/* ---------- Map (Leaflet) ---------- */
 .map-box {
   position: relative;
-  height: 210px;
+  z-index: 0;
+  height: 240px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   overflow: hidden;
-  background: linear-gradient(160deg, #dcebe9, #cfe6ea 55%, #e4eef0);
+  background: #dce8ea;
   margin-bottom: 13px;
 }
 
-.map-grid {
-  position: absolute;
-  inset: 0;
-  background-image: linear-gradient(rgba(14, 124, 134, 0.12) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(14, 124, 134, 0.12) 1px, transparent 1px);
-  background-size: 38px 38px;
+.leaflet-container {
+  font: inherit;
+  background: #dce8ea;
 }
 
-.map-pin {
-  position: absolute;
-  width: 22px;
-  height: 22px;
-  background: var(--teal-700);
-  border: 2px solid #fff;
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.28);
-}
-
-.map-pin.pharmacy {
-  background: #2f6fb0;
-}
-
-.map-pin.infusion {
-  background: #563b9c;
-}
-
-.map-label {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--ink-500);
-  font-size: 0.74rem;
-  font-weight: 700;
-  padding: 5px 12px;
-  border-radius: 999px;
-  white-space: nowrap;
+.z-pin span {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.45);
 }
 
 /* ---------- Result lists ---------- */
@@ -1339,4 +1313,75 @@ h3 {
   --border-strong: #14242a;
   --teal-700: #0a4f57;
   --shadow-sm: 0 0 0 1px #cdd8da;
+}
+
+/* ---------- Section D: form labels &amp; PDF report ---------- */
+.field-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink-700);
+  margin-bottom: 5px;
+  margin-top: 4px;
+}
+
+#print-area {
+  display: none;
+}
+
+@media print {
+  body > .app,
+  body > .onboarding,
+  body > .modal-backdrop {
+    display: none !important;
+  }
+
+  #print-area {
+    display: block !important;
+    color: #000;
+    font-family: Georgia, "Times New Roman", serif;
+    padding: 0 6px;
+  }
+
+  .print-report h1 {
+    font-size: 15px;
+    color: #0e7c86;
+    border-bottom: 2px solid #0e7c86;
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+  }
+
+  .print-report h2 {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+
+  .print-report h3 {
+    font-size: 13px;
+    margin: 14px 0 4px;
+    color: #0a4f57;
+  }
+
+  .print-report p,
+  .print-report li {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .print-report ul {
+    margin: 0 0 4px 18px;
+  }
+
+  .print-disclaimer {
+    margin-top: 16px;
+    padding: 8px 10px;
+    border: 1px solid #999;
+    font-style: italic;
+  }
+
+  .print-foot {
+    margin-top: 10px;
+    font-size: 10px;
+    color: #555;
+  }
 }

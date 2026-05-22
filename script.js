@@ -8,6 +8,8 @@
      - Providers, Pharmacy, Trials, Resources tabs       (v6)
      - Settings, Premium, onboarding, accessibility,
        saved-data persistence, personalization          (v7)
+     - Interactive Leaflet maps, PDF report &amp; share,
+       account name                                     (v8)
 
    The medical content below is educational reference information only.
    It is not medical advice and does not diagnose or prescribe.
@@ -17,34 +19,8 @@
   "use strict";
 
   /* ========================================================
-     1. TAB NAVIGATION
-     ======================================================== */
-  var tabs = document.querySelectorAll(".tab");
-  var screens = document.querySelectorAll(".screen");
-
-  function showScreen(targetId) {
-    screens.forEach(function (screen) {
-      screen.classList.toggle("active", screen.id === targetId);
-    });
-    tabs.forEach(function (tab) {
-      tab.classList.toggle("on", tab.getAttribute("data-target") === targetId);
-    });
-    window.scrollTo(0, 0);
-  }
-
-  tabs.forEach(function (tab) {
-    tab.addEventListener("click", function () {
-      var target = tab.getAttribute("data-target");
-      if (target) {
-        showScreen(target);
-      }
-    });
-  });
-
-  showScreen("screen-chatbot");
-
-  /* ========================================================
      2. SHARED HELPERS + LOCAL STORAGE
+     (defined first so every later section can use them)
      ======================================================== */
   function escapeHtml(str) {
     return String(str)
@@ -63,7 +39,6 @@
     return "https://www.openstreetmap.org/search?query=" + encodeURIComponent(address);
   }
 
-  /* Tiny wrapper around localStorage so saved data survives a reload. */
   var STORE = {
     get: function (key, fallback) {
       try {
@@ -93,6 +68,9 @@
     search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
     info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
     sparkle: '<path d="M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 21l-2.2-6.8L3.5 12l6.3-2.2z"/>',
+    download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>',
+    share:
+      '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5 8.6 10.5"/>',
   };
 
   function icon(name) {
@@ -146,6 +124,51 @@
     }
     return n;
   }
+
+  /* ========================================================
+     1. TAB NAVIGATION
+     ======================================================== */
+  var tabs = document.querySelectorAll(".tab");
+  var screens = document.querySelectorAll(".screen");
+
+  function showScreen(targetId) {
+    screens.forEach(function (screen) {
+      screen.classList.toggle("active", screen.id === targetId);
+    });
+    tabs.forEach(function (tab) {
+      tab.classList.toggle("on", tab.getAttribute("data-target") === targetId);
+    });
+    window.scrollTo(0, 0);
+
+    /* Leaflet maps must be sized after their tab becomes visible. */
+    if (targetId === "screen-providers") {
+      ensureProviderMap();
+      if (providerMap) {
+        window.setTimeout(function () {
+          providerMap.invalidateSize();
+          drawProviderMarkers();
+        }, 80);
+      }
+    }
+    if (targetId === "screen-pharmacy") {
+      ensurePharmacyMap();
+      if (pharmacyMap) {
+        window.setTimeout(function () {
+          pharmacyMap.invalidateSize();
+          drawPharmacyMarkers();
+        }, 80);
+      }
+    }
+  }
+
+  tabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      var target = tab.getAttribute("data-target");
+      if (target) {
+        showScreen(target);
+      }
+    });
+  });
 
   /* ========================================================
      3. CONDITION KNOWLEDGE BASE
@@ -501,7 +524,6 @@
 
   /* ========================================================
      4. PERSONALIZATION
-     The condition chosen in the chatbot tailors the other tabs.
      ======================================================== */
   var CONDITION_SPECIALTY = {
     "Systemic Lupus Erythematosus": "Rheumatology",
@@ -566,7 +588,6 @@
     }
   }
 
-  /* Set the active condition and refresh everything that depends on it. */
   function setActiveCondition(condition) {
     activeCondition = condition || null;
     var idx = condition ? CONDITIONS.indexOf(condition) : -1;
@@ -596,6 +617,7 @@
   var chatSend = document.getElementById("chat-send");
   var conditionSelect = document.getElementById("condition-select");
   var suggestedPrompts = document.getElementById("suggested-prompts");
+  var printArea = document.getElementById("print-area");
 
   function normalize(str) {
     return String(str)
@@ -699,6 +721,7 @@
 
   function answerCard(condition, score) {
     var pct = Math.round(score * 100);
+    var idx = CONDITIONS.indexOf(condition);
     var medsBody =
       '<span class="med-label first">First-line</span>' +
       bulletList(condition.medsFirst) +
@@ -735,6 +758,18 @@
         "Citations (" + condition.citations.length + ")",
         bulletList(condition.citations),
       ) +
+      "</div>" +
+      '<div class="answer-actions">' +
+      '<button class="btn btn-secondary btn-sm" type="button" data-action="pdf" data-cond="' +
+      idx +
+      '">' +
+      icon("download") +
+      " Download PDF</button>" +
+      '<button class="btn btn-secondary btn-sm" type="button" data-action="share" data-cond="' +
+      idx +
+      '">' +
+      icon("share") +
+      " Share</button>" +
       "</div></article>"
     );
   }
@@ -810,6 +845,89 @@
     chatInput.focus();
   }
 
+  /* Build the printable PDF report for a condition. */
+  function buildPrintReport(c) {
+    function ul(items) {
+      var h = "<ul>";
+      for (var i = 0; i < items.length; i++) h += "<li>" + escapeHtml(items[i]) + "</li>";
+      return h + "</ul>";
+    }
+    return (
+      '<div class="print-report">' +
+      "<h1>Zuuno — Condition Report</h1>" +
+      "<h2>" +
+      escapeHtml(c.name) +
+      " (ICD-10 " +
+      escapeHtml(c.icd10) +
+      ")</h2>" +
+      "<p>" +
+      escapeHtml(c.summary) +
+      "</p>" +
+      "<h3>Symptoms &amp; Signs</h3>" +
+      ul(c.symptoms) +
+      "<h3>Medications — First-line</h3>" +
+      ul(c.medsFirst) +
+      "<h3>Medications — Second-line</h3>" +
+      ul(c.medsSecond) +
+      "<h3>Prognosis</h3><p>" +
+      escapeHtml(c.prognosis) +
+      "</p>" +
+      "<h3>Citations</h3>" +
+      ul(c.citations) +
+      '<p class="print-disclaimer">This report is educational reference information only. ' +
+      "It is not medical advice and does not diagnose or prescribe. Consult a licensed " +
+      "healthcare professional.</p>" +
+      '<p class="print-foot">Generated by Zuuno · zuuno medical assistant</p>' +
+      "</div>"
+    );
+  }
+
+  /* Download a PDF report (Premium feature — uses the browser's print-to-PDF). */
+  function downloadPdf(condition) {
+    if (!premium) {
+      refreshPremiumModal();
+      openModal(premiumModal);
+      return;
+    }
+    if (printArea) {
+      printArea.innerHTML = buildPrintReport(condition);
+    }
+    window.print();
+  }
+
+  function flashButton(btn, message) {
+    if (!btn) return;
+    var original = btn.innerHTML;
+    btn.textContent = message;
+    window.setTimeout(function () {
+      btn.innerHTML = original;
+    }, 1700);
+  }
+
+  /* Share a condition summary via the device share sheet or clipboard. */
+  function shareCondition(condition, btn) {
+    var text =
+      "Zuuno — " +
+      condition.name +
+      "\n\n" +
+      condition.summary +
+      "\n\nEducational reference only; not medical advice.";
+    if (navigator.share) {
+      navigator.share({ title: "Zuuno — " + condition.name, text: text }).catch(function () {});
+    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        function () {
+          flashButton(btn, "Copied to clipboard");
+        },
+        function () {
+          flashButton(btn, "Could not copy");
+        },
+      );
+    } else {
+      flashButton(btn, "Sharing not supported");
+    }
+  }
+
   if (chatStream && chatInput && chatSend) {
     chatSend.addEventListener("click", handleSend);
     chatInput.addEventListener("keydown", function (e) {
@@ -819,6 +937,14 @@
       }
     });
     chatStream.addEventListener("click", function (e) {
+      var actionBtn = e.target.closest("[data-action]");
+      if (actionBtn) {
+        var act = actionBtn.getAttribute("data-action");
+        var cond = CONDITIONS[Number(actionBtn.getAttribute("data-cond"))];
+        if (act === "pdf" && cond) downloadPdf(cond);
+        else if (act === "share" && cond) shareCondition(cond, actionBtn);
+        return;
+      }
       var head = e.target.closest(".acc-head");
       if (!head || !chatStream.contains(head)) return;
       var acc = head.closest(".acc");
@@ -852,14 +978,14 @@
      6. PROVIDERS TAB
      ======================================================== */
   var PROVIDERS = [
-    { id: "p1", name: "Dr. Elena Marquez, MD", specialty: "Rheumatology", city: "New York, NY", distanceMi: 2.4, telehealth: true, acceptingNew: true, address: "425 Madison Ave, New York, NY 10017", phone: "(212) 555-0143" },
-    { id: "p2", name: "Dr. David Chen, MD", specialty: "Endocrinology", city: "New York, NY", distanceMi: 9.6, telehealth: true, acceptingNew: true, address: "52 E 72nd St, New York, NY 10021", phone: "(212) 555-0188" },
-    { id: "p3", name: "Dr. Aisha Bello, MD", specialty: "Neurology", city: "New York, NY", distanceMi: 18.3, telehealth: false, acceptingNew: false, address: "1176 5th Ave, New York, NY 10029", phone: "(212) 555-0207" },
-    { id: "p4", name: "Dr. Margaret O'Sullivan, MD", specialty: "Rheumatology", city: "Boston, MA", distanceMi: 1.9, telehealth: true, acceptingNew: true, address: "75 Francis St, Boston, MA 02115", phone: "(617) 555-0112" },
-    { id: "p5", name: "Dr. James Whitfield, MD", specialty: "Neurology", city: "Boston, MA", distanceMi: 12.7, telehealth: true, acceptingNew: true, address: "55 Fruit St, Boston, MA 02114", phone: "(617) 555-0148" },
-    { id: "p6", name: "Dr. Sofia Russo, DO", specialty: "Pulmonology", city: "Boston, MA", distanceMi: 31.5, telehealth: false, acceptingNew: true, address: "330 Brookline Ave, Boston, MA 02215", phone: "(617) 555-0173" },
-    { id: "p7", name: "Dr. William Carter, MD", specialty: "Cardiology", city: "Chicago, IL", distanceMi: 3.1, telehealth: true, acceptingNew: true, address: "251 E Huron St, Chicago, IL 60611", phone: "(312) 555-0121" },
-    { id: "p8", name: "Dr. Grace Park, MD", specialty: "Gastroenterology", city: "Chicago, IL", distanceMi: 22.0, telehealth: false, acceptingNew: true, address: "1725 W Harrison St, Chicago, IL 60612", phone: "(312) 555-0179" },
+    { id: "p1", name: "Dr. Elena Marquez, MD", specialty: "Rheumatology", city: "New York, NY", distanceMi: 2.4, telehealth: true, acceptingNew: true, address: "425 Madison Ave, New York, NY 10017", phone: "(212) 555-0143", lat: 40.7561, lng: -73.9772 },
+    { id: "p2", name: "Dr. David Chen, MD", specialty: "Endocrinology", city: "New York, NY", distanceMi: 9.6, telehealth: true, acceptingNew: true, address: "52 E 72nd St, New York, NY 10021", phone: "(212) 555-0188", lat: 40.77, lng: -73.9647 },
+    { id: "p3", name: "Dr. Aisha Bello, MD", specialty: "Neurology", city: "New York, NY", distanceMi: 18.3, telehealth: false, acceptingNew: false, address: "1176 5th Ave, New York, NY 10029", phone: "(212) 555-0207", lat: 40.7902, lng: -73.9519 },
+    { id: "p4", name: "Dr. Margaret O'Sullivan, MD", specialty: "Rheumatology", city: "Boston, MA", distanceMi: 1.9, telehealth: true, acceptingNew: true, address: "75 Francis St, Boston, MA 02115", phone: "(617) 555-0112", lat: 42.336, lng: -71.1057 },
+    { id: "p5", name: "Dr. James Whitfield, MD", specialty: "Neurology", city: "Boston, MA", distanceMi: 12.7, telehealth: true, acceptingNew: true, address: "55 Fruit St, Boston, MA 02114", phone: "(617) 555-0148", lat: 42.3632, lng: -71.0686 },
+    { id: "p6", name: "Dr. Sofia Russo, DO", specialty: "Pulmonology", city: "Boston, MA", distanceMi: 31.5, telehealth: false, acceptingNew: true, address: "330 Brookline Ave, Boston, MA 02215", phone: "(617) 555-0173", lat: 42.3449, lng: -71.1009 },
+    { id: "p7", name: "Dr. William Carter, MD", specialty: "Cardiology", city: "Chicago, IL", distanceMi: 3.1, telehealth: true, acceptingNew: true, address: "251 E Huron St, Chicago, IL 60611", phone: "(312) 555-0121", lat: 41.8948, lng: -87.623 },
+    { id: "p8", name: "Dr. Grace Park, MD", specialty: "Gastroenterology", city: "Chicago, IL", distanceMi: 22.0, telehealth: false, acceptingNew: true, address: "1725 W Harrison St, Chicago, IL 60612", phone: "(312) 555-0179", lat: 41.8743, lng: -87.6685 },
   ];
 
   var providerList = document.getElementById("provider-list");
@@ -880,6 +1006,7 @@
     acceptingOnly: false,
   };
   var savedProviders = STORE.get("savedProviders", {});
+  var lastProviderRows = [];
 
   function providerCard(p) {
     var saved = savedProviders[p.id] === true;
@@ -962,11 +1089,14 @@
         "No providers found in your area",
         "Try expanding your search radius, changing the location, or clearing filters.",
       );
-      return;
+    } else {
+      var html = "";
+      for (var i = 0; i < rows.length; i++) html += providerCard(rows[i]);
+      providerList.innerHTML = html;
     }
-    var html = "";
-    for (var i = 0; i < rows.length; i++) html += providerCard(rows[i]);
-    providerList.innerHTML = html;
+
+    lastProviderRows = rows;
+    drawProviderMarkers();
   }
 
   if (providerList) {
@@ -1012,13 +1142,13 @@
      7. PHARMACY TAB
      ======================================================== */
   var PHARMACIES = [
-    { id: "rx1", name: "Midtown Community Pharmacy", chain: "CVS Pharmacy", kind: "retail", distanceMi: 1.1, hours: "Mon–Fri 8 AM–10 PM, Sat–Sun 9 AM–7 PM", phone: "(212) 555-0301", address: "630 Lexington Ave, New York, NY 10022", info: "Prescriptions, immunizations, drive-thru, home delivery" },
-    { id: "rx2", name: "Manhattan Specialty Pharmacy", chain: "Independent", kind: "specialty", distanceMi: 2.6, hours: "Mon–Fri 9 AM–6 PM", phone: "(212) 555-0322", address: "139 E 57th St, New York, NY 10022", info: "Specialty and biologic medications, prior-authorization support" },
-    { id: "rx3", name: "East River Infusion Center", chain: "Independent", kind: "infusion", distanceMi: 3.0, hours: "Mon–Sat 7 AM–7 PM", phone: "(212) 555-0344", address: "530 1st Ave, New York, NY 10016", info: "Infusion specialties: Rheumatology, Neurology, Immunology" },
-    { id: "rx4", name: "Longwood Pharmacy", chain: "Walgreens", kind: "retail", distanceMi: 0.8, hours: "Open 24 hours", phone: "(617) 555-0302", address: "350 Longwood Ave, Boston, MA 02115", info: "Prescriptions, immunizations, 24-hour service" },
-    { id: "rx5", name: "Back Bay Specialty Pharmacy", chain: "Independent", kind: "specialty", distanceMi: 2.2, hours: "Mon–Fri 8:30 AM–6 PM", phone: "(617) 555-0323", address: "800 Boylston St, Boston, MA 02199", info: "Specialty medications, home delivery" },
-    { id: "rx6", name: "Streeterville Pharmacy", chain: "Walgreens", kind: "retail", distanceMi: 1.5, hours: "Mon–Sun 7 AM–11 PM", phone: "(312) 555-0303", address: "300 E Ohio St, Chicago, IL 60611", info: "Prescriptions, immunizations, drive-thru" },
-    { id: "rx7", name: "Express Scripts Mail Pharmacy", chain: "Express Scripts", kind: "online", distanceMi: null, hours: "Phone support 24/7", phone: "(800) 555-0911", address: "Nationwide mail-order service", info: "Mail-order prescriptions, 90-day supplies, automatic refills" },
+    { id: "rx1", name: "Midtown Community Pharmacy", chain: "CVS Pharmacy", kind: "retail", distanceMi: 1.1, hours: "Mon–Fri 8 AM–10 PM, Sat–Sun 9 AM–7 PM", phone: "(212) 555-0301", address: "630 Lexington Ave, New York, NY 10022", info: "Prescriptions, immunizations, drive-thru, home delivery", lat: 40.7586, lng: -73.971 },
+    { id: "rx2", name: "Manhattan Specialty Pharmacy", chain: "Independent", kind: "specialty", distanceMi: 2.6, hours: "Mon–Fri 9 AM–6 PM", phone: "(212) 555-0322", address: "139 E 57th St, New York, NY 10022", info: "Specialty and biologic medications, prior-authorization support", lat: 40.7616, lng: -73.969 },
+    { id: "rx3", name: "East River Infusion Center", chain: "Independent", kind: "infusion", distanceMi: 3.0, hours: "Mon–Sat 7 AM–7 PM", phone: "(212) 555-0344", address: "530 1st Ave, New York, NY 10016", info: "Infusion specialties: Rheumatology, Neurology, Immunology", lat: 40.7423, lng: -73.9745 },
+    { id: "rx4", name: "Longwood Pharmacy", chain: "Walgreens", kind: "retail", distanceMi: 0.8, hours: "Open 24 hours", phone: "(617) 555-0302", address: "350 Longwood Ave, Boston, MA 02115", info: "Prescriptions, immunizations, 24-hour service", lat: 42.3378, lng: -71.1042 },
+    { id: "rx5", name: "Back Bay Specialty Pharmacy", chain: "Independent", kind: "specialty", distanceMi: 2.2, hours: "Mon–Fri 8:30 AM–6 PM", phone: "(617) 555-0323", address: "800 Boylston St, Boston, MA 02199", info: "Specialty medications, home delivery", lat: 42.3479, lng: -71.0826 },
+    { id: "rx6", name: "Streeterville Pharmacy", chain: "Walgreens", kind: "retail", distanceMi: 1.5, hours: "Mon–Sun 7 AM–11 PM", phone: "(312) 555-0303", address: "300 E Ohio St, Chicago, IL 60611", info: "Prescriptions, immunizations, drive-thru", lat: 41.8924, lng: -87.6211 },
+    { id: "rx7", name: "Express Scripts Mail Pharmacy", chain: "Express Scripts", kind: "online", distanceMi: null, hours: "Phone support 24/7", phone: "(800) 555-0911", address: "Nationwide mail-order service", info: "Mail-order prescriptions, 90-day supplies, automatic refills", lat: null, lng: null },
   ];
 
   var PHARMACY_KIND_LABELS = {
@@ -1041,6 +1171,7 @@
   var medCheckBtn = document.getElementById("med-check-btn");
   var medCheckMsg = document.getElementById("med-check-msg");
   var pharmacyKind = "all";
+  var lastPharmacyRows = [];
 
   function pharmacyCard(p) {
     return (
@@ -1107,11 +1238,14 @@
         "No pharmacies found",
         "Try a different pharmacy type.",
       );
-      return;
+    } else {
+      var html = "";
+      for (var i = 0; i < rows.length; i++) html += pharmacyCard(rows[i]);
+      pharmacyList.innerHTML = html;
     }
-    var html = "";
-    for (var i = 0; i < rows.length; i++) html += pharmacyCard(rows[i]);
-    pharmacyList.innerHTML = html;
+
+    lastPharmacyRows = rows;
+    drawPharmacyMarkers();
   }
 
   function runMedCheck() {
@@ -1450,7 +1584,6 @@
     });
   }
 
-  /* Personalization "Show all" link clears the active condition. */
   document.addEventListener("click", function (e) {
     if (e.target.closest('[data-action="clear-perso"]')) {
       setActiveCondition(null);
@@ -1458,7 +1591,101 @@
   });
 
   /* ========================================================
-     10. ACCESSIBILITY
+     10. INTERACTIVE MAPS (Leaflet)
+     ======================================================== */
+  var MAP_TILES = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+  var MAP_ATTR =
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+  var providerMap = null;
+  var providerMarkers = null;
+  var pharmacyMap = null;
+  var pharmacyMarkers = null;
+
+  function zPin(color) {
+    return L.divIcon({
+      className: "z-pin",
+      html: '<span style="background:' + color + '"></span>',
+      iconSize: [22, 22],
+      iconAnchor: [11, 11],
+      popupAnchor: [0, -10],
+    });
+  }
+
+  function makeMap(elementId) {
+    var el = document.getElementById(elementId);
+    if (!el) return null;
+    var map = L.map(el, { scrollWheelZoom: false });
+    L.tileLayer(MAP_TILES, { attribution: MAP_ATTR, maxZoom: 18 }).addTo(map);
+    map.setView([39.8, -95.5], 3);
+    return map;
+  }
+
+  function fitMap(map, points) {
+    if (!map) return;
+    if (points.length === 1) {
+      map.setView(points[0], 12);
+    } else if (points.length > 1) {
+      map.fitBounds(points, { padding: [30, 30], maxZoom: 12 });
+    } else {
+      map.setView([39.8, -95.5], 3);
+    }
+  }
+
+  function drawProviderMarkers() {
+    if (!providerMap || !providerMarkers) return;
+    providerMarkers.clearLayers();
+    var points = [];
+    for (var i = 0; i < lastProviderRows.length; i++) {
+      var p = lastProviderRows[i];
+      if (typeof p.lat !== "number") continue;
+      L.marker([p.lat, p.lng], { icon: zPin("#0e7c86") })
+        .bindPopup(
+          "<strong>" + escapeHtml(p.name) + "</strong><br>" + escapeHtml(p.specialty),
+        )
+        .addTo(providerMarkers);
+      points.push([p.lat, p.lng]);
+    }
+    fitMap(providerMap, points);
+  }
+
+  function ensureProviderMap() {
+    if (providerMap || typeof L === "undefined") return;
+    providerMap = makeMap("provider-map");
+    if (providerMap) {
+      providerMarkers = L.layerGroup().addTo(providerMap);
+      drawProviderMarkers();
+    }
+  }
+
+  function drawPharmacyMarkers() {
+    if (!pharmacyMap || !pharmacyMarkers) return;
+    pharmacyMarkers.clearLayers();
+    var points = [];
+    for (var i = 0; i < lastPharmacyRows.length; i++) {
+      var p = lastPharmacyRows[i];
+      if (typeof p.lat !== "number") continue;
+      var color = p.kind === "infusion" ? "#563b9c" : "#2f6fb0";
+      L.marker([p.lat, p.lng], { icon: zPin(color) })
+        .bindPopup(
+          "<strong>" + escapeHtml(p.name) + "</strong><br>" + escapeHtml(p.chain),
+        )
+        .addTo(pharmacyMarkers);
+      points.push([p.lat, p.lng]);
+    }
+    fitMap(pharmacyMap, points);
+  }
+
+  function ensurePharmacyMap() {
+    if (pharmacyMap || typeof L === "undefined") return;
+    pharmacyMap = makeMap("pharmacy-map");
+    if (pharmacyMap) {
+      pharmacyMarkers = L.layerGroup().addTo(pharmacyMap);
+      drawPharmacyMarkers();
+    }
+  }
+
+  /* ========================================================
+     11. ACCESSIBILITY
      ======================================================== */
   var TEXT_SIZES = { small: "15px", normal: "16px", large: "18px" };
   var a11y = STORE.get("a11y", { contrast: "normal", textsize: "normal" });
@@ -1472,7 +1699,7 @@
   }
 
   /* ========================================================
-     11. PREMIUM + MODALS
+     12. PREMIUM + MODALS + ACCOUNT
      ======================================================== */
   var premium = STORE.get("premium", false);
   var premiumBtn = document.getElementById("premium-btn");
@@ -1489,6 +1716,7 @@
   var settingsPremiumBtn = document.getElementById("settings-premium-btn");
   var settingsSaved = document.getElementById("settings-saved");
   var clearDataBtn = document.getElementById("clear-data-btn");
+  var accountName = document.getElementById("account-name");
 
   function openModal(modal) {
     if (modal) modal.classList.add("open");
@@ -1543,6 +1771,7 @@
           " trial" +
           (tc === 1 ? "" : "s") +
           " saved";
+    if (accountName) accountName.value = STORE.get("name", "");
   }
 
   if (settingsBtn) {
@@ -1560,8 +1789,7 @@
 
   document.querySelectorAll("[data-close-modal]").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      var backdrop = btn.closest(".modal-backdrop");
-      closeModal(backdrop);
+      closeModal(btn.closest(".modal-backdrop"));
     });
   });
 
@@ -1595,6 +1823,12 @@
       refreshSettings();
     });
   });
+
+  if (accountName) {
+    accountName.addEventListener("input", function () {
+      STORE.set("name", accountName.value.trim());
+    });
+  }
 
   if (settingsPremiumBtn) {
     settingsPremiumBtn.addEventListener("click", function () {
@@ -1630,7 +1864,7 @@
   }
 
   /* ========================================================
-     12. ONBOARDING (first visit)
+     13. ONBOARDING (first visit)
      ======================================================== */
   var onboarding = document.getElementById("onboarding");
   var onboardStep1 = document.getElementById("onboard-step-1");
@@ -1639,6 +1873,7 @@
   var onboardBack = document.getElementById("onboard-back");
   var onboardFinish = document.getElementById("onboard-finish");
   var consentCheckbox = document.getElementById("consent-checkbox");
+  var onboardName = document.getElementById("onboard-name");
 
   if (onboarding && onboardNext && onboardFinish) {
     onboardNext.addEventListener("click", function () {
@@ -1653,6 +1888,8 @@
       onboardFinish.disabled = !consentCheckbox.checked;
     });
     onboardFinish.addEventListener("click", function () {
+      var name = onboardName ? onboardName.value.trim() : "";
+      if (name) STORE.set("name", name);
       STORE.set("onboarded", true);
       onboarding.classList.remove("show");
       onboarding.setAttribute("aria-hidden", "true");
@@ -1660,7 +1897,7 @@
   }
 
   /* ========================================================
-     13. INITIAL RENDER
+     14. INITIAL RENDER
      ======================================================== */
   (function restoreActiveCondition() {
     var idx = STORE.get("activeCondition", -1);
@@ -1677,6 +1914,8 @@
   if (pharmacyList) renderPharmacies();
   if (trialList) renderTrials();
   if (resourceList) renderResources();
+
+  showScreen("screen-chatbot");
 
   if (onboarding && STORE.get("onboarded", false) !== true) {
     onboarding.classList.add("show");

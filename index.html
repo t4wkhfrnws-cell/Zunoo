@@ -9,7 +9,8 @@
       content="Zuuno — a clinician-grade medical assistant and resource hub for people managing a known diagnosis."
     />
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
-    <link rel="stylesheet" href="style.css?v=7" />
+    <link rel="stylesheet" href="assets/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="style.css?v=8" />
     <title>Zuuno — Medical Assistant</title>
   </head>
   <body>
@@ -139,13 +140,7 @@
             </div>
           </div>
 
-          <div class="map-box" id="provider-map" role="img" aria-label="Map placeholder">
-            <div class="map-grid"></div>
-            <span class="map-pin" style="top: 38%; left: 30%"></span>
-            <span class="map-pin" style="top: 56%; left: 62%"></span>
-            <span class="map-pin" style="top: 24%; left: 70%"></span>
-            <span class="map-label">Provider map — full version coming soon</span>
-          </div>
+          <div class="map-box" id="provider-map" aria-label="Map of providers"></div>
 
           <div class="results-meta" id="provider-meta"></div>
           <div class="result-list" id="provider-list"></div>
@@ -181,12 +176,7 @@
             <button class="pill-btn" type="button" data-kind="infusion">Infusion centers</button>
           </div>
 
-          <div class="map-box" id="pharmacy-map" role="img" aria-label="Map placeholder">
-            <div class="map-grid"></div>
-            <span class="map-pin pharmacy" style="top: 42%; left: 40%"></span>
-            <span class="map-pin infusion" style="top: 60%; left: 66%"></span>
-            <span class="map-label">Pharmacy map — full version coming soon</span>
-          </div>
+          <div class="map-box" id="pharmacy-map" aria-label="Map of pharmacies"></div>
 
           <div class="results-meta" id="pharmacy-meta"></div>
           <div class="result-list" id="pharmacy-list"></div>
@@ -368,6 +358,8 @@
             Zuuno gives general educational information. It does not diagnose conditions,
             prescribe treatment, or replace a visit with your doctor.
           </p>
+          <label class="field-label" for="onboard-name">Your name (optional)</label>
+          <input class="input" type="text" id="onboard-name" placeholder="e.g. Alex Morgan" />
           <label class="consent-row" for="consent-checkbox">
             <input type="checkbox" id="consent-checkbox" />
             <span>
@@ -395,6 +387,12 @@
           </button>
         </div>
         <div class="modal-body">
+          <p class="section-label">Account</p>
+          <input class="input" type="text" id="account-name" placeholder="Add your name" />
+          <p class="set-about" style="margin-top: 6px">
+            Saved on this device only and shown here as your account.
+          </p>
+
           <p class="section-label">Accessibility</p>
           <div class="set-row">
             <div class="set-text">
@@ -495,6 +493,9 @@
       </div>
     </div>
 
-    <script src="script.js?v=7"></script>
+    <div id="print-area" aria-hidden="true"></div>
+
+    <script src="assets/leaflet/leaflet.js"></script>
+    <script src="script.js?v=8"></script>
   </body>
 </html>

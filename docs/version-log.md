@@ -224,13 +224,33 @@ separately locked. Downloadable PDF reports are not built.
 
 ---
 
-## App version #8
+## App version #8 — Interactive Maps, PDF Reports &amp; Account  *(Milestone 3)*
 
 **Changes in visual layout**
 
+The Providers and Pharmacy tabs now show real interactive maps (powered by
+the Leaflet library and OpenStreetMap) with a marker for every result,
+replacing the placeholder graphics. Chatbot answers gained "Download PDF"
+and "Share" buttons. The onboarding screen has a name field, and Settings
+has a new Account section.
 
 **Changes in functionality**
 
+Built the final stretch features:
+
+- Interactive maps — the Providers and Pharmacy tabs display zoomable,
+  pannable maps; the markers update when you change the filters, and each
+  marker can be clicked for details.
+- Download PDF — a chatbot answer can be saved as a formatted PDF report
+  through the browser's print-to-PDF. This is a Premium feature, so on the
+  free plan the button opens the Premium popup instead.
+- Share — a Share button shares or copies an answer summary.
+- Account name — you can enter your name during onboarding, and it appears
+  in Settings as your account, where it stays editable.
 
 **What isn't working well**
+
+The map needs an internet connection to load its background tiles. The
+Premium subscription and the PDF feature gating both work, but the other
+premium perks listed in the popup are not separately locked.
 
