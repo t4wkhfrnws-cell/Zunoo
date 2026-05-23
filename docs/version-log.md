@@ -321,3 +321,57 @@ The FAQ layer covers six universal topics per condition; questions outside
 that scope still fall back to the structured overview card. The chatbot
 remains rule-based (no generative AI), so it can only answer what's been
 written into the knowledge base.
+
+---
+
+## App version #11 — Much Smarter Chatbot  *(Milestone 3)*
+
+**Changes in visual layout**
+
+Two small visible additions: a red "please check the box" message that
+appears under the consent checkbox if you try to continue without checking
+it, and a new style of answer card for glossary look-ups (the term as
+the heading and a "Glossary" tag). The "Not enough information" card now
+also shows three example questions Zuuno can actually answer.
+
+**Changes in functionality**
+
+A big upgrade to the chatbot, focused on the questions people actually ask:
+
+- **Three new FAQ topics per condition** — triggers and flare-ups,
+  pregnancy and fertility, and red flags (when to see a doctor). That's
+  36 new curated answers, taking the FAQ layer from 72 to 108.
+- **Medical glossary** — about 40 common terms patients hear in clinic
+  (ANA, A1c, DMARD, BNP, ejection fraction, biologic, JAK inhibitor,
+  CGRP, GLP-1, ARNI, MRA, NSAID, ICS, LABA, DASH diet, and more). Ask
+  "what is BNP" or "define A1c" and Zuuno explains it in plain English.
+- **Honest identity answer** — ask "are you AI?" or "are you a bot?"
+  and Zuuno says, accurately, that it is a rule-based assistant matching
+  questions against a curated knowledge base, not a generative AI.
+- **Empathy responses** — phrases like "I'm scared," "I'm overwhelmed,"
+  or "I can't sleep" get a kind, honest reply that points to the
+  Resources tab and to crisis lines if needed.
+- **Crisis safety net** — phrases suggesting suicidal thoughts ("want
+  to die," "kill myself," etc.) immediately surface the 988 (US/Canada),
+  Samaritans 116 123 (UK), and findahelpline.com lines.
+- **Typo tolerance** — fuzzy matching catches small spelling mistakes,
+  so "lupis," "asthmaa," and "diabettes" still find the right condition.
+- **Smarter follow-ups** — "tell me more" or "go on" expands the last
+  condition card; pronoun questions like "is it genetic?" stick to the
+  active condition.
+- **Better no-match card** — when Zuuno can't answer, it now suggests
+  three example questions it _can_ answer instead of a blank dead-end.
+- **Bug fix** — when you said "thanks" the reply showed "You&#39;re
+  welcome" instead of "You're welcome" (a double-escape bug). Fixed.
+- **Better consent flow** — the "Get started" button on the onboarding
+  consent step is no longer disabled; instead, it shows a clear "please
+  check the box above to continue" message if you click without
+  agreeing.
+
+**What isn't working well**
+
+The chatbot is still rule-based — it can only answer what's been written
+into the knowledge base, so very specific or very unusual questions still
+fall back to the overview card or the no-match card. The empathy and
+crisis responses are simple keyword triggers, not a substitute for a
+mental-health professional.

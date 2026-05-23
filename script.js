@@ -930,6 +930,9 @@
     { id: "diagnosis", keys: ["diagnos", "tested for", "test for", "what test", "how do you know", "confirmed"], q: function (s) { return "How is " + s + " diagnosed?"; } },
     { id: "exercise", keys: ["exercise", "work out", "workout", "physical activity", "sport", "gym", "running"], q: function (s) { return "Can I exercise with " + s + "?"; } },
     { id: "diet", keys: ["diet", "food", "what to eat", "what should i eat", "nutrition", "drink alcohol", "what to avoid"], q: function (s) { return "What about diet and " + s + "?"; } },
+    { id: "triggers", keys: ["trigger", "flare up", "flares", "what flares", "what sets off", "set off", "make it worse", "worsens", "makes worse", "cause a flare", "cause flares", "what worsen"], q: function (s) { return "What triggers " + s + " flares?"; } },
+    { id: "pregnancy", keys: ["pregnan", "fertility", "conceive", "conception", "having a baby", "trying for a baby", "while pregnant", "during pregnancy", "tubal", "breastfeed", "breast feed"], q: function (s) { return "Can I be pregnant with " + s + "?"; } },
+    { id: "redflags", keys: ["red flag", "emergency", "when to see", "when should i see", "when do i see", "go to the er", "go to er", "go to the hospital", "urgent care", "warning sign", "when to call", "when to worry", "is it dangerous", "life threat"], q: function (s) { return "When should I see a doctor about " + s + "?"; } },
   ];
 
   var CONDITION_FAQ = {
@@ -1031,6 +1034,362 @@
     },
   };
 
+  /* v11 — three more FAQ topics per condition: triggers, pregnancy,
+     red flags. Merged into CONDITION_FAQ below so the rest of the
+     chatbot keeps working unchanged. */
+  var CONDITION_FAQ_EXTRAS = {
+    "Systemic Lupus Erythematosus": {
+      triggers: "Common lupus flare triggers include sun exposure, infections, stress, poor sleep, hormonal changes (pregnancy, menstruation), and certain medications (sulfa antibiotics). Sunscreen, rest, and staying on hydroxychloroquine reduce flare risk.",
+      pregnancy: "Pregnancy is possible with lupus and is safest when the disease has been quiet for ~6 months. Hydroxychloroquine is continued through pregnancy, but mycophenolate, methotrexate, and cyclophosphamide must be stopped before conception. Lupus pregnancies are higher-risk for preeclampsia and preterm birth and are co-managed by rheumatology and maternal-fetal medicine.",
+      redflags: "Seek urgent care for chest pain, severe shortness of breath, a sudden severe headache, vision changes, seizure, signs of stroke, fever over 38.5°C (101.3°F), or new severe joint pain with swelling — these can signal serious organ involvement.",
+    },
+    "Rheumatoid Arthritis": {
+      triggers: "RA flares can be set off by stress, infections, overdoing physical activity, missed medication doses, smoking, and sometimes weather changes. A steady routine — sleep, gentle activity, scheduled medications — keeps flares less frequent.",
+      pregnancy: "Most people with RA have healthy pregnancies. Plan ahead — methotrexate and JAK inhibitors must be stopped well before conception. RA often improves during pregnancy and may flare in the months after delivery, so rheumatology follow-up is important.",
+      redflags: "Seek urgent care for a single hot, severely swollen joint with fever (possible joint infection), sudden numbness or weakness, severe chest pain, or new fever, mouth sores, or unusual fatigue — these can signal infection or medication side effects, especially on biologics.",
+    },
+    "Type 2 Diabetes Mellitus": {
+      triggers: "Blood sugar tends to spike with high-carb meals, sugary drinks, stress, illness, certain medications (steroids), missed doses, and inactivity. Tracking sugars at flagged moments helps you spot your patterns.",
+      pregnancy: "Pregnancy is possible with type 2 diabetes and is safest when blood sugar is tightly controlled before conception — high A1c at conception raises the risk of birth defects and miscarriage. Most oral medications are switched to insulin during pregnancy, with care shared by a high-risk obstetrician.",
+      redflags: "Seek urgent care for blood sugar persistently over 250 mg/dL with vomiting or trouble breathing (possible DKA or HHS), severe low blood sugar, chest pain, sudden weakness or speech changes (stroke), or a foot wound that isn't healing.",
+    },
+    "Type 1 Diabetes Mellitus": {
+      triggers: "Highs are often triggered by missed insulin, infections, stress, and very high-carb meals. Lows are triggered by extra insulin, skipped meals, alcohol, or exercise. Keep fast-acting sugar with you and check often.",
+      pregnancy: "Pregnancy is safe with type 1 diabetes when blood sugar is tightly controlled before conception — high A1c at conception raises the risk of birth defects. Insulin needs change throughout pregnancy and require close monitoring by an endocrinologist and obstetrician.",
+      redflags: "Seek urgent care for nausea, vomiting, abdominal pain, fruity breath, or fast breathing — these suggest diabetic ketoacidosis (DKA). Severe low blood sugar with confusion, seizure, or inability to eat is also an emergency.",
+    },
+    Asthma: {
+      triggers: "Common asthma triggers are allergens (pollen, dust mites, pets), cold air, exercise, smoke, strong scents, respiratory infections, and stress. Identify your triggers, avoid them where possible, and use your controller inhaler daily.",
+      pregnancy: "Asthma usually does well in pregnancy with continued inhalers — uncontrolled asthma is more dangerous to the baby than the medications. Inhaled steroids and short-acting beta agonists are considered safe; severe asthma needs specialist input.",
+      redflags: "Seek emergency care if your reliever inhaler isn't lasting four hours, you can't speak in full sentences, your lips or fingernails turn blue, you feel drowsy or confused, or peak flow drops below 50% of your best — these are signs of a severe attack.",
+    },
+    "Chronic Obstructive Pulmonary Disease": {
+      triggers: "COPD flares are most often triggered by respiratory infections (viruses, bacteria) and air pollution. Stop smoking, get yearly flu and pneumococcal vaccines, and follow a written action plan from your doctor.",
+      pregnancy: "COPD in pregnancy is uncommon since it usually develops later in life. If it occurs, most inhalers are continued — uncontrolled COPD lowers oxygen to the baby. Quitting smoking is critical.",
+      redflags: "Seek urgent care for worsening shortness of breath at rest, blue lips, confusion, new ankle swelling, or fever — these suggest a severe flare or infection. Persistent very low oxygen needs hospital care.",
+    },
+    Hypertension: {
+      triggers: "Blood pressure rises with high-sodium foods, alcohol, stress, poor sleep, missed doses, decongestants in cold medicines, and NSAIDs (ibuprofen, naproxen). A home blood-pressure cuff helps track patterns.",
+      pregnancy: "Some blood-pressure medications — ACE inhibitors and ARBs — cause birth defects and must be switched before conception. Methyldopa, labetalol, and nifedipine are typically used in pregnancy. Chronic hypertension raises preeclampsia risk, so prenatal care is closer.",
+      redflags: "Seek emergency care for blood pressure over 180/120 with chest pain, a severe headache, vision changes, shortness of breath, weakness, or speech changes — this can mean stroke, heart attack, or organ damage.",
+    },
+    "Heart Failure": {
+      triggers: "Heart-failure flares are often triggered by salty meals, fluid overload, missed medications, infections, arrhythmias, or uncontrolled blood pressure. Daily weights catch fluid build-up early.",
+      pregnancy: "Heart failure raises pregnancy risk significantly and needs preconception counseling with a cardiologist. Several heart-failure medications (ARNI, ACE inhibitors, ARBs, SGLT2 inhibitors) must be stopped before conception. Some heart conditions make pregnancy dangerous.",
+      redflags: "Seek urgent care for a weight gain of 2 kg in three days, severe shortness of breath, chest pain, fainting, palpitations, or new swelling above the ankles. Weighing yourself daily catches early fluid build-up.",
+    },
+    Migraine: {
+      triggers: "Common migraine triggers are stress (and stress let-down), skipped meals, dehydration, poor sleep, hormonal changes, alcohol (especially red wine), aged cheeses, MSG, and bright lights. A trigger diary helps you find your personal pattern.",
+      pregnancy: "Many people's migraine improves during pregnancy, especially in the second and third trimesters. Triptans are used cautiously; preventives like topiramate and valproate are stopped before conception. Acetaminophen is the first-line acute treatment.",
+      redflags: "Seek urgent care for the 'worst headache of your life,' a headache with fever and stiff neck, sudden weakness or speech changes, confusion, seizure, or a headache after a head injury. New headache patterns after age 50 also warrant evaluation.",
+    },
+    "Multiple Sclerosis": {
+      triggers: "MS relapses can be triggered by infections, stress, and lack of sleep. Heat doesn't cause real relapses but can temporarily worsen symptoms (Uhthoff's phenomenon). Stay current on vaccines and treat infections early.",
+      pregnancy: "Pregnancy is generally safe in MS — relapses are less common during pregnancy but more common in the months after delivery. Most disease-modifying therapies are stopped before conception; planning with a neurologist matters.",
+      redflags: "Seek urgent care for any new sudden neurologic symptom lasting more than 24 hours (vision loss, weakness, severe dizziness), a severe headache, seizure, or signs of infection while on disease-modifying therapy.",
+    },
+    "Crohn's Disease": {
+      triggers: "Crohn's flares can be triggered by stress, smoking, NSAIDs (ibuprofen, naproxen), infections, and missed medications. Some foods worsen symptoms during flares but they don't cause the disease.",
+      pregnancy: "Pregnancy is best planned when Crohn's is in remission for at least 3–6 months — active disease at conception raises complication risk. Most biologics (infliximab, adalimumab) are continued, but methotrexate must be stopped at least three months before.",
+      redflags: "Seek urgent care for severe abdominal pain, persistent vomiting, fever over 38.5°C (101.3°F), heavy rectal bleeding, signs of dehydration, or no bowel movement with a swollen belly — these can mean obstruction or perforation.",
+    },
+    Hypothyroidism: {
+      triggers: "Symptoms can return if levothyroxine dose drifts — usually after weight changes, pregnancy, or new medications (iron, calcium, antacids, some antidepressants). A yearly TSH check catches drift.",
+      pregnancy: "Hypothyroidism in pregnancy is common and easily managed — levothyroxine is safe and continued. Doses usually need to be increased early in pregnancy, and TSH is checked every 4 weeks. Untreated hypothyroidism raises miscarriage and developmental risk.",
+      redflags: "Seek urgent care for severe lethargy, confusion, a slow heart rate, a very low body temperature, or new chest pain. Rarely, untreated severe hypothyroidism leads to myxedema coma — a medical emergency.",
+    },
+  };
+  (function mergeFaqExtras() {
+    for (var name in CONDITION_FAQ_EXTRAS) {
+      if (!CONDITION_FAQ[name]) continue;
+      var extras = CONDITION_FAQ_EXTRAS[name];
+      for (var key in extras) CONDITION_FAQ[name][key] = extras[key];
+    }
+  })();
+
+  /* v11 — glossary of common terms patients hear in clinic. Look-up
+     happens when the user asks "what is X" / "what does X mean" /
+     "define X". */
+  var GLOSSARY = [
+    { term: "ANA", aliases: ["antinuclear antibody", "antinuclear antibodies"], def: "ANA (antinuclear antibody) is a blood test that's commonly positive in lupus and several other autoimmune diseases. A positive ANA alone doesn't diagnose any disease — it has to be interpreted with symptoms and other tests." },
+    { term: "DMARD", aliases: ["dmards", "disease modifying antirheumatic drug", "disease-modifying antirheumatic drug"], def: "DMARDs are 'disease-modifying antirheumatic drugs' — medications that slow autoimmune disease itself, not just symptoms. Methotrexate, hydroxychloroquine, and sulfasalazine are common conventional DMARDs; biologics and JAK inhibitors are newer types." },
+    { term: "A1c", aliases: ["hba1c", "hemoglobin a1c", "haemoglobin a1c"], def: "A1c (also called HbA1c) is a blood test that reflects average blood sugar over about the past three months. A normal A1c is under 5.7%; 5.7–6.4% is prediabetes; 6.5% or higher is diabetes." },
+    { term: "BNP", aliases: ["b-type natriuretic peptide", "brain natriuretic peptide"], def: "BNP is a blood test for heart failure — the heart releases more of it when it is stretched or strained. A high BNP supports the diagnosis; a low BNP usually rules it out." },
+    { term: "NT-proBNP", aliases: ["nt probnp", "ntprobnp", "n-terminal probnp"], def: "NT-proBNP is a longer-lasting cousin of BNP used to diagnose and monitor heart failure. It's interpreted the same way: higher levels suggest more cardiac strain." },
+    { term: "anti-CCP", aliases: ["anti ccp", "ccp antibody", "anti cyclic citrullinated peptide"], def: "Anti-CCP is a blood antibody that's highly specific for rheumatoid arthritis. A positive anti-CCP often appears before joint symptoms and predicts more severe disease." },
+    { term: "rheumatoid factor", aliases: ["rf"], def: "Rheumatoid factor (RF) is an antibody that can be positive in rheumatoid arthritis, but also in other autoimmune diseases, infections, and even healthy older adults. It is not as specific as anti-CCP." },
+    { term: "ICD-10", aliases: ["icd 10", "icd10"], def: "ICD-10 is the international diagnostic code system used to label conditions on charts and insurance claims. Each Zuuno condition card shows the relevant ICD-10 code." },
+    { term: "spirometry", aliases: ["pulmonary function test", "pft"], def: "Spirometry is a breathing test that measures how much and how fast you can exhale. It is used to diagnose asthma and COPD and to track lung function over time." },
+    { term: "FEV1", aliases: ["fev 1", "fev-one"], def: "FEV1 is the volume of air you can blow out in the first second of a forced exhalation. It is lowered in asthma (reversible) and COPD (largely fixed)." },
+    { term: "ejection fraction", aliases: ["ef", "lvef"], def: "Ejection fraction is the percentage of blood the left ventricle pumps out with each beat. Normal is roughly 55–70%. Low EF (under ~40%) defines heart failure with reduced ejection fraction." },
+    { term: "echocardiogram", aliases: ["echo", "echocardiograph", "echocardiography"], def: "An echocardiogram, or 'echo,' is an ultrasound of the heart. It shows the chambers, valves, and how strongly the heart pumps — including ejection fraction." },
+    { term: "MRI", aliases: ["magnetic resonance imaging"], def: "MRI uses magnets and radio waves to create detailed images of the body without radiation. It's the standard test for diagnosing MS and is also used for many other conditions." },
+    { term: "C-peptide", aliases: ["c peptide"], def: "C-peptide is a marker of how much insulin your own pancreas is making. A low C-peptide with high blood sugar suggests type 1 diabetes; a normal or high C-peptide suggests type 2." },
+    { term: "HLA", aliases: ["human leukocyte antigen", "hla typing"], def: "HLA refers to a set of genes that tag your cells as 'self' to the immune system. Certain HLA variants raise risk for autoimmune diseases like type 1 diabetes, RA, lupus, and celiac." },
+    { term: "biologic", aliases: ["biologics", "biological"], def: "A biologic is a protein-based medication (often a monoclonal antibody) that targets a specific part of the immune system. Examples include adalimumab, infliximab, rituximab, and dupilumab." },
+    { term: "JAK inhibitor", aliases: ["jak inhibitors", "jaki"], def: "JAK inhibitors are oral pills that block intracellular immune signaling. They're used in RA, psoriatic arthritis, ulcerative colitis, and other immune-mediated diseases." },
+    { term: "CGRP", aliases: ["calcitonin gene-related peptide", "cgrp antibody", "cgrp inhibitor"], def: "CGRP is a peptide released by nerves that plays a key role in migraine. CGRP-blocking antibodies (erenumab, fremanezumab, galcanezumab) and oral 'gepants' (rimegepant, ubrogepant) are newer migraine treatments." },
+    { term: "GLP-1", aliases: ["glp 1", "glp1", "glp-1 agonist", "glucagon-like peptide-1"], def: "GLP-1 receptor agonists (semaglutide, liraglutide, tirzepatide) are injectable or oral medications used in type 2 diabetes and obesity. They lower blood sugar, slow stomach emptying, reduce appetite, and improve heart and kidney outcomes." },
+    { term: "SGLT2 inhibitor", aliases: ["sglt 2 inhibitor", "sglt2"], def: "SGLT2 inhibitors (empagliflozin, dapagliflozin) make the kidneys excrete extra sugar in the urine. They lower blood sugar in diabetes and improve outcomes in heart failure and chronic kidney disease." },
+    { term: "ARNI", aliases: ["arni therapy", "sacubitril valsartan", "sacubitril/valsartan"], def: "ARNI stands for angiotensin receptor–neprilysin inhibitor (sacubitril/valsartan). It's a foundational therapy for heart failure with reduced ejection fraction." },
+    { term: "MRA", aliases: ["mineralocorticoid receptor antagonist", "spironolactone", "eplerenone"], def: "MRAs (spironolactone, eplerenone) block aldosterone. They're used in heart failure and resistant hypertension and improve survival in heart failure with reduced ejection fraction." },
+    { term: "beta-blocker", aliases: ["beta blocker", "betablocker", "b blocker"], def: "Beta-blockers (metoprolol, carvedilol, atenolol) slow the heart rate and lower blood pressure by blocking adrenaline's effect on the heart. They're used in heart failure, arrhythmias, and after heart attacks." },
+    { term: "ACE inhibitor", aliases: ["ace inhibitors", "ace-i", "acei"], def: "ACE inhibitors (lisinopril, enalapril, ramipril) lower blood pressure and protect the kidneys and heart. They are first-line for many people with hypertension, heart failure, or diabetic kidney disease." },
+    { term: "ARB", aliases: ["arbs", "angiotensin receptor blocker"], def: "ARBs (losartan, valsartan, irbesartan) work similarly to ACE inhibitors but without causing the cough side effect. They're used for hypertension, heart failure, and kidney protection." },
+    { term: "statin", aliases: ["statins"], def: "Statins (atorvastatin, rosuvastatin, simvastatin) lower LDL cholesterol and reduce the risk of heart attack and stroke. They are recommended for people at increased cardiovascular risk." },
+    { term: "NSAID", aliases: ["nsaids", "non steroidal anti inflammatory drug", "nonsteroidal anti-inflammatory"], def: "NSAIDs are non-steroidal anti-inflammatory drugs like ibuprofen, naproxen, and diclofenac. They reduce pain and inflammation but can raise blood pressure, irritate the stomach, strain the kidneys, and worsen heart failure." },
+    { term: "corticosteroid", aliases: ["steroid", "steroids", "prednisone", "prednisolone"], def: "Corticosteroids (prednisone, methylprednisolone) are powerful anti-inflammatory medications used to control flares of many autoimmune and inflammatory diseases. Long-term use causes weight gain, bone loss, and blood-sugar elevation." },
+    { term: "flare", aliases: ["flare up", "flares", "flare-up"], def: "A 'flare' is a temporary worsening of a chronic disease — for example, a return of lupus rash and joint pain after a stable period, or a sudden increase in asthma symptoms." },
+    { term: "remission", aliases: ["in remission"], def: "Remission means a disease has become quiet — symptoms are gone or minimal and lab markers have improved. It doesn't necessarily mean cured; relapses can occur." },
+    { term: "autoimmune", aliases: ["autoimmunity", "autoimmune disease"], def: "Autoimmune disease is when the immune system mistakenly attacks the body's own tissues. Examples include lupus, RA, type 1 diabetes, multiple sclerosis, Crohn's, and Hashimoto's." },
+    { term: "myelin", aliases: ["myelin sheath"], def: "Myelin is the insulating sheath around nerves that lets electrical signals travel quickly. In multiple sclerosis the immune system attacks myelin, slowing or blocking nerve signals." },
+    { term: "TSH", aliases: ["thyroid stimulating hormone"], def: "TSH (thyroid-stimulating hormone) is the main test of thyroid function. High TSH usually means an underactive thyroid (hypothyroidism); low TSH usually means an overactive thyroid (hyperthyroidism)." },
+    { term: "levothyroxine", aliases: ["synthroid", "thyroxine", "t4"], def: "Levothyroxine is synthetic thyroid hormone (T4) taken once daily to replace what an underactive thyroid is not making. Most people feel completely well at the right dose." },
+    { term: "EBV", aliases: ["epstein barr virus", "epstein-barr"], def: "EBV (Epstein-Barr virus) is the cause of mononucleosis. EBV infection appears to be required for multiple sclerosis to develop, though most people who get EBV never develop MS." },
+    { term: "DASH diet", aliases: ["dash"], def: "The DASH diet (Dietary Approaches to Stop Hypertension) is rich in fruits, vegetables, whole grains, and low-fat dairy and low in sodium. It can lower blood pressure by about 11/5 mmHg." },
+    { term: "aura", aliases: ["migraine aura"], def: "Migraine aura is a brief neurologic warning before or during a migraine — most often shimmering lights, blind spots, or zigzag lines, sometimes numbness or speech changes — lasting 5 to 60 minutes." },
+    { term: "triptan", aliases: ["triptans", "sumatriptan", "rizatriptan"], def: "Triptans (sumatriptan, rizatriptan) are acute migraine medications that stop attacks. They work best taken early in an attack and aren't used more than 2–3 days a week." },
+    { term: "ICS", aliases: ["inhaled corticosteroid", "inhaled steroid"], def: "ICS (inhaled corticosteroid) is the controller component of most asthma inhalers — fluticasone, budesonide, beclomethasone. It calms airway inflammation and is taken every day even when feeling well." },
+    { term: "LABA", aliases: ["long acting beta agonist", "long-acting beta agonist"], def: "LABA (long-acting beta agonist) is a long-lasting bronchodilator like salmeterol or formoterol. In asthma it is always combined with an inhaled steroid; in COPD it can be used alone or with a steroid." },
+    { term: "bronchodilator", aliases: ["bronchodilators"], def: "A bronchodilator is a medication that opens narrowed airways. Short-acting bronchodilators (albuterol) act in minutes; long-acting ones (salmeterol, formoterol, tiotropium) last 12–24 hours." },
+    { term: "pulmonary rehab", aliases: ["pulmonary rehabilitation", "pulm rehab"], def: "Pulmonary rehabilitation is a structured program of exercise, education, and breathing techniques for people with chronic lung disease. It's one of the most effective treatments for COPD." },
+  ];
+  /* Only treat the query as a glossary lookup if it looks like a
+     definition request (e.g. "what is BNP", "define A1c") or the
+     query is just a glossary term on its own. */
+  function isDefineQuery(q) {
+    return /^(what is |what s |whats |what does |what means |define |defn |meaning of |explain |tell me what )/.test(q);
+  }
+  function findGlossary(query) {
+    var q = normalize(query);
+    if (!q) return null;
+    var stripped = q
+      .replace(/^(what is an? |what is the |what is |what s an? |what s |whats an? |whats |what does an? |what does |what means |define |defn |meaning of an? |meaning of |explain an? |explain |tell me what an? |tell me what )/, "")
+      .replace(/\s+(mean|means|do|stand for|stands for)$/, "")
+      .replace(/\?+$/, "")
+      .trim();
+    var isDefine = isDefineQuery(q);
+    for (var i = 0; i < GLOSSARY.length; i++) {
+      var entry = GLOSSARY[i];
+      var terms = [normalize(entry.term)];
+      for (var a = 0; a < entry.aliases.length; a++) terms.push(normalize(entry.aliases[a]));
+      for (var t = 0; t < terms.length; t++) {
+        var term = terms[t];
+        if (!term) continue;
+        if (stripped === term) return entry;
+        if (term.length >= 3 && (stripped === term + "s" || stripped + "s" === term)) return entry;
+        if (isDefine) {
+          var pad = " " + stripped + " ";
+          if (pad.indexOf(" " + term + " ") !== -1) return entry;
+        }
+      }
+    }
+    return null;
+  }
+  function glossaryCard(entry) {
+    return (
+      '<article class="answer-card">' +
+      '<div class="answer-head">' +
+      '<div class="answer-title-row"><h2>' +
+      escapeHtml(entry.term) +
+      '</h2><span class="chip chip-teal">Glossary</span></div>' +
+      '<p class="answer-summary">' +
+      escapeHtml(entry.def) +
+      "</p></div></article>"
+    );
+  }
+
+  /* v11 — identity, empathy, crisis, and follow-up intents. */
+  function isIdentity(query) {
+    var q = normalize(query);
+    return hasAny(q, [
+      "are you ai",
+      "are you a ai",
+      "are you an ai",
+      "are you a bot",
+      "are you a robot",
+      "are you human",
+      "are you a real",
+      "are you real",
+      "is this ai",
+      "is this a bot",
+      "is this real",
+      "are you chatgpt",
+      "are you a chatbot",
+      "are you a person",
+      "who made you",
+      "who built you",
+      "who created you",
+      "who programmed you",
+    ]);
+  }
+  function identityCard() {
+    return plainCard("About Zuuno", [
+      "I&#39;m Zuuno&#39;s assistant — not a generative AI like ChatGPT. I&#39;m a rule-based program that matches your question against a curated, cited knowledge base of conditions. That means I can&#39;t make up answers, but I also can&#39;t answer questions outside that knowledge base.",
+      "I cover " + CONDITIONS.length + " conditions in depth, plus a glossary of common medical terms. Type a condition or a term to get started.",
+    ]);
+  }
+
+  function isCrisis(query) {
+    var q = normalize(query);
+    return hasAny(q, [
+      "kill myself",
+      "killing myself",
+      "want to die",
+      "wanna die",
+      "end my life",
+      "ending my life",
+      "end it all",
+      "ending it all",
+      "suicide",
+      "suicidal",
+      "harm myself",
+      "hurt myself",
+      "self harm",
+      "self-harm",
+      "no reason to live",
+      "better off dead",
+    ]);
+  }
+  function crisisCard() {
+    return plainCard("Please reach out — you don't have to do this alone", [
+      "If you are in immediate danger, please call your local emergency number now. In the US and Canada you can call or text <strong>988</strong> for the Suicide &amp; Crisis Lifeline; in the UK, call <strong>116 123</strong> for Samaritans; elsewhere, <a href=\"https://findahelpline.com\" target=\"_blank\" rel=\"noopener\">findahelpline.com</a> lists free, confidential helplines by country.",
+      "I&#39;m a medical-information assistant and not equipped to support a mental-health crisis. A trained person on the other end of those lines is.",
+    ]);
+  }
+
+  function isEmpathy(query) {
+    var q = normalize(query);
+    return hasAny(q, [
+      "i m scared",
+      "im scared",
+      "i am scared",
+      "i m afraid",
+      "im afraid",
+      "i am afraid",
+      "i m worried",
+      "im worried",
+      "i am worried",
+      "i m anxious",
+      "im anxious",
+      "i am anxious",
+      "i feel hopeless",
+      "i feel alone",
+      "i feel lost",
+      "i feel sad",
+      "i m sad",
+      "im sad",
+      "i am sad",
+      "i m depressed",
+      "im depressed",
+      "i am depressed",
+      "i m exhausted",
+      "im exhausted",
+      "i am exhausted",
+      "i m overwhelmed",
+      "im overwhelmed",
+      "i am overwhelmed",
+      "this sucks",
+      "this is hard",
+      "i m struggling",
+      "im struggling",
+      "i am struggling",
+      "i can t sleep",
+      "i cant sleep",
+      "i can t cope",
+      "i cant cope",
+      "i m tired of",
+      "im tired of",
+      "i am tired of",
+      "i m in pain",
+      "im in pain",
+      "i am in pain",
+      "i hate this",
+      "i don t know what to do",
+      "i dont know what to do",
+    ]);
+  }
+  function empathyCard() {
+    var who = STORE.get("name", "");
+    var greet = who ? "I hear you, " + escapeHtml(who) + "." : "I hear you.";
+    return plainCard(greet, [
+      "Living with a chronic condition is genuinely hard, and what you&#39;re feeling is real. I&#39;m a medical-information tool — I can&#39;t replace a person — but if it would help, I can pull up plain-English information about your condition, share what others have found helpful, or point you to the Resources tab where there are patient communities and support lines.",
+      "If you&#39;re having thoughts of hurting yourself, please call or text 988 (US/Canada), 116 123 (UK Samaritans), or visit findahelpline.com for a local helpline.",
+    ]);
+  }
+
+  function isMore(query) {
+    var q = normalize(query);
+    return (
+      q === "more" ||
+      q === "go on" ||
+      q === "continue" ||
+      q === "tell me more" ||
+      q === "tell me more please" ||
+      q === "more info" ||
+      q === "more information" ||
+      q === "more please" ||
+      q === "more detail" ||
+      q === "more details" ||
+      q === "and" ||
+      q === "and?" ||
+      q === "ok" ||
+      q === "okay"
+    );
+  }
+
+  /* v11 — Levenshtein distance for typo-tolerant condition matching. */
+  function levenshtein(a, b) {
+    if (a === b) return 0;
+    if (!a.length) return b.length;
+    if (!b.length) return a.length;
+    var prev = new Array(b.length + 1);
+    for (var i = 0; i <= b.length; i++) prev[i] = i;
+    for (var i = 1; i <= a.length; i++) {
+      var curr = [i];
+      for (var j = 1; j <= b.length; j++) {
+        var cost = a.charCodeAt(i - 1) === b.charCodeAt(j - 1) ? 0 : 1;
+        curr[j] = Math.min(curr[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost);
+      }
+      prev = curr;
+    }
+    return prev[b.length];
+  }
+  function fuzzyFindCondition(query) {
+    var q = normalize(query);
+    if (!q || q.length < 4) return null;
+    var qWords = q.split(" ").filter(function (w) { return w.length >= 4; });
+    if (!qWords.length) return null;
+    var best = null;
+    for (var i = 0; i < CONDITIONS.length; i++) {
+      var c = CONDITIONS[i];
+      var terms = [normalize(c.name)];
+      for (var s = 0; s < c.synonyms.length; s++) terms.push(normalize(c.synonyms[s]));
+      for (var t = 0; t < terms.length; t++) {
+        var term = terms[t];
+        if (!term || term.length < 4) continue;
+        var termWords = term.split(" ");
+        for (var qw = 0; qw < qWords.length; qw++) {
+          var qWord = qWords[qw];
+          for (var tw = 0; tw < termWords.length; tw++) {
+            var tWord = termWords[tw];
+            if (tWord.length < 4) continue;
+            var d = levenshtein(qWord, tWord);
+            var maxLen = Math.max(qWord.length, tWord.length);
+            var allowed = maxLen <= 5 ? 1 : maxLen <= 8 ? 2 : 3;
+            if (d > 0 && d <= allowed) {
+              var score = 0.7 + (1 - d / maxLen) * 0.15;
+              if (!best || score > best.score) {
+                best = { condition: c, score: score, fuzzy: true, typed: qWord, suggested: tWord };
+              }
+            }
+          }
+        }
+      }
+    }
+    return best;
+  }
+
   function findFaq(condition, query) {
     var answers = CONDITION_FAQ[condition.name];
     if (!answers) return null;
@@ -1087,13 +1446,46 @@
     );
   }
 
-  function noMatchCard() {
-    return plainCard("Not enough information", [
+  function noMatchCard(opts) {
+    opts = opts || {};
+    var paragraphs = [
       "I don&#39;t have enough evidence to answer that. Please consult a healthcare professional.",
-      "Try naming a condition Zuuno covers — for example: lupus, asthma, type 2 diabetes, migraine, or COPD. Zuuno currently covers " +
+      "I&#39;m a rule-based assistant, not a search engine — I can only answer about the " +
         CONDITIONS.length +
-        " conditions.",
-    ]);
+        " conditions in my knowledge base. Try one of these:",
+    ];
+    if (opts.typoSuggestion) {
+      paragraphs.unshift(
+        "Did you mean <strong>" +
+          escapeHtml(opts.typoSuggestion) +
+          "</strong>? Try the question again with that spelling.",
+      );
+    }
+    var samples = [
+      "What causes lupus?",
+      "How is asthma treated?",
+      "Symptoms of type 2 diabetes",
+    ];
+    var chips = "";
+    for (var i = 0; i < samples.length; i++) {
+      chips += '<button class="suggest-chip" type="button">' + escapeHtml(samples[i]) + "</button>";
+    }
+    var body = "";
+    for (var p = 0; p < paragraphs.length; p++) {
+      body += '<p class="answer-summary">' + paragraphs[p] + "</p>";
+    }
+    return (
+      '<article class="answer-card">' +
+      '<div class="answer-head" style="border-bottom:none">' +
+      '<div class="answer-title-row"><h2>Not enough information</h2></div>' +
+      body +
+      "</div>" +
+      '<div class="answer-followups">' +
+      '<p class="followup-label">Try one of these</p>' +
+      '<div class="chip-row">' +
+      chips +
+      "</div></div></article>"
+    );
   }
 
   function guardrailCard(query) {
@@ -1127,18 +1519,40 @@
   }
 
   function respondTo(text) {
+    if (isCrisis(text)) return crisisCard();
     if (isUnsafeQuery(text)) return guardrailCard(text);
+    if (isIdentity(text)) return identityCard();
+    if (isEmpathy(text)) return empathyCard();
     if (isGreeting(text)) return greetingCard();
     if (isThanks(text))
       return plainCard("You're welcome", [
         "Glad to help. Ask me anything else about a condition you have.",
       ]);
     if (isHelp(text)) return helpCard();
+    if (isMore(text)) {
+      if (activeCondition) return answerCard(activeCondition, 0.95, null);
+      return plainCard("Ask me a question first", [
+        "I&#39;d love to expand, but you haven&#39;t asked about a condition yet. Try typing a condition name like &ldquo;lupus&rdquo; or &ldquo;asthma&rdquo;, or pick one from the dropdown.",
+      ]);
+    }
 
     var intent = detectIntent(text);
     var match = findCondition(text);
+    if (!match) {
+      var fuzzy = fuzzyFindCondition(text);
+      if (fuzzy) match = fuzzy;
+    }
+    if (!match) {
+      var gloss = findGlossary(text);
+      if (gloss) return glossaryCard(gloss);
+    }
     if (!match && activeCondition) {
-      match = { condition: activeCondition, score: 0.95 };
+      var nq = normalize(text);
+      var pronounRef = /^(is it|does it|can it|will it|won t it|how about it|what about it|and it|for it|with it|of it|in it|its )/.test(nq);
+      var faqOnActive = findFaq(activeCondition, text);
+      if (pronounRef || intent || faqOnActive) {
+        match = { condition: activeCondition, score: 0.92 };
+      }
     }
     if (match) {
       setActiveCondition(match.condition);
