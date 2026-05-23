@@ -1564,3 +1564,196 @@ h3 {
 :root[data-theme="dark"] .btn-primary {
   color: #062a2f;
 }
+
+
+/* ============================================================
+ * v12 additions — citations, glossary chips, compare card,
+ * condition diagrams, condition-picker categories, distance
+ * chips, and high-contrast dark mode.
+ * ============================================================ */
+
+/* Citation links */
+.bullets-citations li {
+  list-style: none;
+  margin-left: -8px;
+  padding: 4px 0;
+}
+.cite-link {
+  color: var(--teal-700);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-bottom: 1px dotted var(--teal-700);
+}
+.cite-link:hover { color: var(--teal-600); border-bottom-color: var(--teal-600); }
+.ic-xs { width: 12px; height: 12px; vertical-align: -1px; }
+.cite-ext { opacity: 0.7; }
+
+/* Inline glossary chip inside answer body */
+.glossary-chip {
+  background: var(--teal-050);
+  color: var(--teal-700);
+  border: 1px dashed var(--teal-700);
+  border-radius: 6px;
+  padding: 0 5px;
+  margin: 0 1px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.glossary-chip:hover { background: var(--teal-100); }
+
+/* Compare card */
+.compare-card .cmp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 14px;
+}
+.compare-card .cmp-col {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+}
+.compare-card .cmp-title {
+  font-size: 1rem;
+  margin: 0 0 6px;
+  color: var(--ink-900);
+}
+.compare-card .cmp-summary {
+  font-size: 0.88rem;
+  color: var(--ink-700);
+  margin: 6px 0;
+}
+.compare-card .cmp-prog {
+  font-size: 0.85rem;
+  color: var(--ink-500);
+  margin: 4px 0 0;
+}
+.compare-card .bullets { font-size: 0.85rem; }
+.compare-card .section-label { margin-top: 8px; }
+@media (max-width: 540px) {
+  .compare-card .cmp-grid { grid-template-columns: 1fr; }
+}
+
+/* Condition diagram */
+.cond-diagram {
+  margin: 12px 0 0;
+  padding: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--teal-700);
+}
+.diagram-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-500);
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.diagram-svg {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  margin: 0 auto;
+}
+.lock-tag {
+  background: var(--amber-bg);
+  color: var(--amber-text);
+  border: 1px solid var(--amber-border);
+  border-radius: 4px;
+  padding: 0 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.cond-diagram-locked {
+  position: relative;
+  text-align: center;
+  cursor: pointer;
+}
+.cond-diagram-locked .diagram-lock-overlay {
+  filter: blur(3px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+.cond-diagram-locked .btn { margin-top: 8px; }
+
+/* Condition-picker categories + search */
+.cond-pick-search {
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+.cond-pick-grouped { display: block; }
+.cond-cat-group { margin-bottom: 14px; }
+.cond-cat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-500);
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+.cond-cat-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* History echo card */
+.history-echo {
+  background: var(--surface-2);
+  border-style: dashed;
+}
+
+/* High contrast in dark mode */
+:root[data-theme="dark"][data-contrast="high"] {
+  --bg: #000000;
+  --surface: #0a1518;
+  --surface-2: #0f1f23;
+  --border: #6f8a8e;
+  --border-strong: #c9d6d8;
+  --ink-900: #ffffff;
+  --ink-700: #f0f6f6;
+  --ink-500: #c0cdd0;
+  --ink-400: #a8b6b9;
+  --ink-300: #8a9a9d;
+  --teal-700: #5fe1ee;
+  --teal-600: #6ce8f4;
+  --teal-500: #80edf8;
+  --teal-100: #0d3a44;
+  --teal-050: #0a2c35;
+}
+:root[data-theme="dark"][data-contrast="high"] .answer-card,
+:root[data-theme="dark"][data-contrast="high"] .card,
+:root[data-theme="dark"][data-contrast="high"] .result-card {
+  border: 2px solid var(--border-strong);
+}
+:root[data-theme="dark"][data-contrast="high"] .pill-btn {
+  border: 2px solid var(--border-strong);
+}
+:root[data-theme="dark"][data-contrast="high"] .btn-primary {
+  background: var(--teal-500);
+  color: #000;
+  border: 2px solid var(--border-strong);
+}
+:root[data-theme="dark"][data-contrast="high"] .chip {
+  border: 1px solid var(--border-strong);
+}
+:root[data-theme="dark"][data-contrast="high"] .cite-link {
+  color: var(--teal-500);
+  border-bottom-color: var(--teal-500);
+}
+:root[data-theme="dark"][data-contrast="high"] .glossary-chip {
+  border-style: solid;
+  border-width: 2px;
+}

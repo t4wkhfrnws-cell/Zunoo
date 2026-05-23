@@ -44,6 +44,19 @@
     return str.length > max ? str.slice(0, max).trim() + "…" : str;
   }
 
+  /* v12 — render a distance chip; shows real distance when the user
+     has opted into geolocation, otherwise falls back to the sample
+     distance baked into the record. */
+  function distanceChip(item) {
+    var d = (typeof distanceMiFor === "function") ? distanceMiFor(item) : item.distanceMi;
+    if (d == null) return "";
+    var label = d.toFixed(1) + " mi";
+    if (typeof userLocation !== "undefined" && userLocation && userLocation.on) {
+      label += " away";
+    }
+    return '<span class="chip chip-teal">' + label + "</span>";
+  }
+
   var STORE = {
     get: function (key, fallback) {
       try {
@@ -76,6 +89,8 @@
     download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>',
     share:
       '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5 8.6 10.5"/>',
+    copy:
+      '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
     building:
       '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M9 6h.01M15 6h.01M9 10h.01M15 10h.01M9 14h.01M15 14h.01"/>',
   };
@@ -531,6 +546,30 @@
     },
   ];
 
+  /* v12 — group conditions in the picker by body system. */
+  var CONDITION_CATEGORY = {
+    "Systemic Lupus Erythematosus": "Autoimmune",
+    "Rheumatoid Arthritis": "Autoimmune",
+    "Multiple Sclerosis": "Autoimmune",
+    "Crohn's Disease": "Gastrointestinal",
+    "Type 1 Diabetes Mellitus": "Endocrine & Metabolic",
+    "Type 2 Diabetes Mellitus": "Endocrine & Metabolic",
+    Hypothyroidism: "Endocrine & Metabolic",
+    Asthma: "Respiratory",
+    "Chronic Obstructive Pulmonary Disease": "Respiratory",
+    Hypertension: "Cardiovascular",
+    "Heart Failure": "Cardiovascular",
+    Migraine: "Neurologic",
+  };
+  var CATEGORY_ORDER = [
+    "Autoimmune",
+    "Cardiovascular",
+    "Endocrine & Metabolic",
+    "Gastrointestinal",
+    "Neurologic",
+    "Respiratory",
+  ];
+
   /* ========================================================
      4. PERSONALIZATION
      ======================================================== */
@@ -651,6 +690,35 @@
     return false;
   }
 
+  /* v12 — true if `term` appears in `text`, but is preceded by a
+     negation token within the previous ~3 words. Used so "I don't
+     want to exercise" doesn't match the exercise FAQ. */
+  var NEGATION_TOKENS = {
+    not: 1, no: 1, never: 1, without: 1, cant: 1, "can t": 1,
+    dont: 1, "don t": 1, doesnt: 1, "doesn t": 1, didnt: 1, "didn t": 1,
+    wont: 1, "won t": 1, isnt: 1, "isn t": 1, arent: 1, "aren t": 1,
+    wasnt: 1, "wasn t": 1, werent: 1, "weren t": 1, hate: 1, avoid: 1,
+    avoiding: 1, stopped: 1, quit: 1, refuse: 1, refused: 1,
+  };
+  function isNegated(text, term) {
+    var idx = text.indexOf(term);
+    if (idx === -1) return false;
+    var before = text.slice(0, idx).trim();
+    if (!before) return false;
+    var words = before.split(/\s+/);
+    var window = words.slice(Math.max(0, words.length - 4)).join(" ");
+    for (var key in NEGATION_TOKENS) {
+      if ((" " + window + " ").indexOf(" " + key + " ") !== -1) return true;
+    }
+    return false;
+  }
+  function hasAnyUnnegated(text, words) {
+    for (var i = 0; i < words.length; i++) {
+      if (text.indexOf(words[i]) !== -1 && !isNegated(text, words[i])) return true;
+    }
+    return false;
+  }
+
   function findCondition(query) {
     var q = normalize(query);
     if (!q) return null;
@@ -685,11 +753,11 @@
   /* Detect which part of a condition the user is asking about. */
   function detectIntent(query) {
     var q = normalize(query);
-    if (hasAny(q, ["symptom", "sign", "warning", "feel like", "presentation", "early signs"])) {
+    if (hasAnyUnnegated(q, ["symptom", "sign", "warning", "feel like", "presentation", "early signs"])) {
       return "symptoms";
     }
     if (
-      hasAny(q, [
+      hasAnyUnnegated(q, [
         "medication",
         "medicine",
         "drug",
@@ -704,7 +772,7 @@
       return "medications";
     }
     if (
-      hasAny(q, [
+      hasAnyUnnegated(q, [
         "prognosis",
         "outlook",
         "outcome",
@@ -779,6 +847,115 @@
     return html + "</ul>";
   }
 
+  /* v12 — premium-gated schematic diagram for each condition. The
+     diagrams are intentionally simple schematics, not anatomical
+     illustrations. */
+  var CONDITION_DIAGRAMS = {
+    "Systemic Lupus Erythematosus":
+      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="120" cy="58" rx="30" ry="38"/><path d="M90 70 Q120 84 150 70" stroke-linecap="round"/><ellipse cx="100" cy="68" rx="9" ry="5" fill="currentColor" opacity=".25"/><ellipse cx="140" cy="68" rx="9" ry="5" fill="currentColor" opacity=".25"/><circle cx="70" cy="118" r="5" fill="currentColor" opacity=".8"/><circle cx="120" cy="118" r="5" fill="currentColor" opacity=".8"/><circle cx="170" cy="118" r="5" fill="currentColor" opacity=".8"/></g><text x="120" y="148" text-anchor="middle" font-size="11" fill="currentColor">Skin · joints · kidneys · multi-organ</text></svg>',
+    "Rheumatoid Arthritis":
+      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><path d="M70 110 L70 60 Q70 50 80 50 Q90 50 90 60 L90 110"/><path d="M95 110 L95 50 Q95 40 105 40 Q115 40 115 50 L115 110"/><path d="M120 110 L120 45 Q120 35 130 35 Q140 35 140 45 L140 110"/><path d="M145 110 L145 55 Q145 45 155 45 Q165 45 165 55 L165 110"/><circle cx="80" cy="78" r="6" fill="currentColor" opacity=".4"/><circle cx="105" cy="68" r="6" fill="currentColor" opacity=".4"/><circle cx="130" cy="64" r="6" fill="currentColor" opacity=".4"/><circle cx="155" cy="72" r="6" fill="currentColor" opacity=".4"/></g><text x="120" y="148" text-anchor="middle" font-size="11" fill="currentColor">Symmetric inflammation of small joints</text></svg>',
+    "Type 2 Diabetes Mellitus":
+      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><path d="M40 80 Q90 50 140 70 Q190 90 200 70" stroke-linecap="round"/><circle cx="60" cy="80" r="4" fill="currentColor"/><circle cx="100" cy="62" r="4" fill="currentColor"/><circle cx="140" cy="70" r="4" fill="currentColor"/><circle cx="180" cy="78" r="4" fill="currentColor"/><path d="M80 110 Q100 95 120 110" stroke-dasharray="3 3"/><text x="120" y="135" text-anchor="middle" font-size="11" fill="currentColor">Insulin resistance · blunted response</text></g></svg>',
+    "Type 1 Diabetes Mellitus":
+      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><path d="M50 80 Q70 50 110 50 Q170 50 190 80 Q170 110 110 110 Q70 110 50 80 Z"/><circle cx="80" cy="80" r="5" fill="currentColor" opacity=".35"/><circle cx="105" cy="78" r="5" fill="currentColor" opacity=".35"/><circle cx="130" cy="82" r="5" fill="currentColor" opacity=".35"/><circle cx="155" cy="80" r="5" fill="currentColor" opacity=".35"/><line x1="75" y1="75" x2="85" y2="85" stroke-width="2"/><line x1="85" y1="75" x2="75" y2="85" stroke-width="2"/><line x1="100" y1="73" x2="110" y2="83" stroke-width="2"/><line x1="110" y1="73" x2="100" y2="83" stroke-width="2"/></g><text x="120" y="135" text-anchor="middle" font-size="11" fill="currentColor">Autoimmune destruction of beta cells</text></svg>',
+    Asthma:
+      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="80" cy="80" r="32"/><circle cx="80" cy="80" r="18"/><text x="80" y="125" text-anchor="middle" font-size="10" fill="currentColor">Open</text><circle cx="170" cy="80" r="32"/><circle cx="170" cy="80" r="8" fill="currentColor" opacity=".4"/><text x="170" y="125" text-anchor="middle" font-size="10" fill="currentColor">Constricted</text></g><text x="120" y="148" text-anchor="middle" font-size="11" fill="currentColor">Airway narrowing in an attack</text></svg>',
+    "Chronic Obstructive Pulmonary Disease":
+      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><path d="M120 30 V 80"/><path d="M120 50 Q90 60 80 90 Q70 120 95 130 Q105 122 110 100"/><path d="M120 50 Q150 60 160 90 Q170 120 145 130 Q135 122 130 100"/><circle cx="92" cy="100" r="6" fill="currentColor" opacity=".3"/><circle cx="105" cy="115" r="6" fill="currentColor" opacity=".3"/><circle cx="138" cy="115" r="6" fill="currentColor" opacity=".3"/><circle cx="150" cy="100" r="6" fill="currentColor" opacity=".3"/></g><text x="120" y="150" text-anchor="middle" font-size="11" fill="currentColor">Damaged alveoli · airflow obstruction</text></svg>',
+    Hypertension:
+      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="120" cy="70" r="42"/><text x="120" y="68" text-anchor="middle" font-size="22" fill="currentColor" font-weight="600">140</text><text x="120" y="86" text-anchor="middle" font-size="12" fill="currentColor">/ 90</text><path d="M78 130 H 162" stroke-width="3"/><path d="M78 130 V 120 M162 130 V 120"/></g><text x="120" y="150" text-anchor="middle" font-size="11" fill="currentColor">Sustained elevated arterial pressure</text></svg>',
+    "Heart Failure":
+      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><path d="M120 110 C 70 80 80 40 110 50 C 120 55 120 60 120 65 C 120 60 120 55 130 50 C 160 40 170 80 120 110 Z"/><path d="M100 75 Q120 60 140 75" stroke-dasharray="3 3"/><path d="M170 90 L 200 90 M195 84 L 200 90 L 195 96"/></g><text x="120" y="150" text-anchor="middle" font-size="11" fill="currentColor">Weakened pump · reduced output</text></svg>',
+    Migraine:
+      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><path d="M75 100 C 75 50 165 50 165 100 L 165 115 Q 165 120 160 120 L 150 120 L 150 130 L 95 130 L 95 120 L 80 120 Q 75 120 75 115 Z"/><path d="M90 75 Q 100 70 110 80 Q 120 90 130 80 Q 140 70 150 80" stroke-dasharray="2 2"/><path d="M180 60 L 200 50 M180 70 L 205 70 M180 80 L 200 90" stroke-linecap="round"/></g><text x="120" y="150" text-anchor="middle" font-size="11" fill="currentColor">Unilateral throbbing · aura · photophobia</text></svg>',
+    "Multiple Sclerosis":
+      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><line x1="30" y1="80" x2="210" y2="80" stroke-width="3"/><rect x="40" y="68" width="20" height="24" rx="6"/><rect x="80" y="68" width="20" height="24" rx="6" fill="currentColor" opacity=".25"/><rect x="120" y="68" width="20" height="24" rx="6"/><rect x="160" y="68" width="20" height="24" rx="6" fill="currentColor" opacity=".25"/></g><text x="120" y="135" text-anchor="middle" font-size="11" fill="currentColor">Demyelination of CNS nerve sheaths</text></svg>',
+    "Crohn's Disease":
+      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><path d="M60 40 Q 110 40 110 80 Q 110 120 60 120"/><path d="M180 40 Q 130 40 130 80 Q 130 120 180 120"/><circle cx="98" cy="60" r="6" fill="currentColor" opacity=".35"/><circle cx="110" cy="95" r="6" fill="currentColor" opacity=".35"/><circle cx="135" cy="70" r="6" fill="currentColor" opacity=".35"/><circle cx="138" cy="110" r="6" fill="currentColor" opacity=".35"/></g><text x="120" y="148" text-anchor="middle" font-size="11" fill="currentColor">Patchy transmural GI-tract inflammation</text></svg>',
+    Hypothyroidism:
+      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><line x1="120" y1="30" x2="120" y2="80"/><path d="M100 70 Q 80 80 78 110 Q 78 122 95 122 Q 110 122 115 105 Z" fill="currentColor" opacity=".18"/><path d="M140 70 Q 160 80 162 110 Q 162 122 145 122 Q 130 122 125 105 Z" fill="currentColor" opacity=".18"/><path d="M100 70 Q 80 80 78 110 Q 78 122 95 122 Q 110 122 115 105 Z"/><path d="M140 70 Q 160 80 162 110 Q 162 122 145 122 Q 130 122 125 105 Z"/></g><text x="120" y="148" text-anchor="middle" font-size="11" fill="currentColor">Underactive butterfly-shaped thyroid</text></svg>',
+  };
+  function diagramSection(condition) {
+    var svg = CONDITION_DIAGRAMS[condition.name];
+    if (!svg) return "";
+    if (premium) {
+      return (
+        '<div class="cond-diagram">' +
+        '<p class="diagram-label">Schematic</p>' +
+        svg +
+        "</div>"
+      );
+    }
+    return (
+      '<div class="cond-diagram cond-diagram-locked" data-action="premium-prompt">' +
+      '<p class="diagram-label">Schematic <span class="lock-tag">Premium</span></p>' +
+      '<div class="diagram-lock-overlay">' + svg + "</div>" +
+      '<button class="btn btn-secondary btn-sm" type="button" data-action="premium-prompt">Unlock with Premium</button>' +
+      "</div>"
+    );
+  }
+
+  /* v12 — citations rendered as clickable links to the source. */
+  var CITATION_LINKS = {
+    "Harrison's Principles of Internal Medicine, 21st ed. (2022)":
+      "https://accessmedicine.mhmedical.com/book.aspx?bookID=3095",
+    "EULAR recommendations for the management of SLE (2023)":
+      "https://ard.bmj.com/content/83/1/15",
+    "Kelley & Firestein's Textbook of Rheumatology, 11th ed. (2021)":
+      "https://www.elsevier.com/books/kelley-and-firesteins-textbook-of-rheumatology-2-volume-set/firestein/978-0-323-63920-0",
+    "ACR Guideline for the Treatment of Rheumatoid Arthritis (2021)":
+      "https://rheumatology.org/clinical-practice-guidelines",
+    "ADA Standards of Care in Diabetes — 2024":
+      "https://diabetesjournals.org/care/issue/47/Supplement_1",
+    "Williams Textbook of Endocrinology, 14th ed. (2020)":
+      "https://www.elsevier.com/books/williams-textbook-of-endocrinology/melmed/978-0-323-55596-8",
+    "The Lancet Seminar: Type 1 Diabetes (2023)":
+      "https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(23)01218-2/fulltext",
+    "GINA Global Strategy for Asthma Management and Prevention (2024)":
+      "https://ginasthma.org/2024-report/",
+    "Murray and Nadel's Textbook of Respiratory Medicine, 7th ed. (2022)":
+      "https://www.elsevier.com/books/murray-and-nadels-textbook-of-respiratory-medicine-2-volume-set/broaddus/978-0-323-65587-3",
+    "GOLD Global Strategy for the Diagnosis and Management of COPD (2024)":
+      "https://goldcopd.org/2024-gold-report/",
+    "ACC/AHA Guideline for the Management of High Blood Pressure (2017)":
+      "https://www.ahajournals.org/doi/10.1161/HYP.0000000000000065",
+    "Braunwald's Heart Disease, 12th ed. (2022)":
+      "https://www.elsevier.com/books/braunwalds-heart-disease-a-textbook-of-cardiovascular-medicine-2-volume-set/libby/978-0-323-72219-3",
+    "AHA/ACC/HFSA Guideline for the Management of Heart Failure (2022)":
+      "https://www.ahajournals.org/doi/10.1161/CIR.0000000000001063",
+    "American Headache Society Consensus Statement on Migraine Therapy (2024)":
+      "https://onlinelibrary.wiley.com/doi/10.1111/head.14692",
+    "Bradley and Daroff's Neurology in Clinical Practice, 8th ed. (2022)":
+      "https://www.elsevier.com/books/bradley-and-daroffs-neurology-in-clinical-practice/jankovic/978-0-323-64261-3",
+    "AAN Practice Guideline: Disease-Modifying Therapies for MS (2018)":
+      "https://www.aan.com/Guidelines/home/GuidelineDetail/898",
+    "Sleisenger and Fordtran's Gastrointestinal and Liver Disease, 11th ed. (2021)":
+      "https://www.elsevier.com/books/sleisenger-and-fordtrans-gastrointestinal-and-liver-disease-2-volume-set/feldman/978-0-323-60962-3",
+    "ECCO Guidelines on Therapeutics in Crohn's Disease (2020)":
+      "https://academic.oup.com/ecco-jcc/article/14/1/4/5650418",
+    "American Thyroid Association Guidelines for Hypothyroidism (2014)":
+      "https://www.thyroid.org/professionals/ata-professional-guidelines/",
+  };
+  function citationsList(items) {
+    var html = '<ul class="bullets bullets-citations">';
+    for (var i = 0; i < items.length; i++) {
+      var c = items[i];
+      var url = CITATION_LINKS[c];
+      if (url) {
+        html +=
+          '<li><a href="' +
+          escapeHtml(url) +
+          '" target="_blank" rel="noopener noreferrer" class="cite-link">' +
+          escapeHtml(c) +
+          ' <svg viewBox="0 0 24 24" class="ic-xs cite-ext" aria-hidden="true"><path d="M14 3h7v7M10 14 21 3M5 21h14a2 2 0 0 0 2-2v-7M19 12v7H5V5h7"/></svg></a></li>';
+      } else {
+        html += "<li>" + escapeHtml(c) + "</li>";
+      }
+    }
+    return html + "</ul>";
+  }
+
   function chatSection(iconKey, sectionId, title, bodyHtml, open) {
     return (
       '<div class="acc' +
@@ -844,7 +1021,9 @@
       introHtml +
       '<p class="answer-summary">' +
       condition.summary +
-      "</p></div>" +
+      "</p>" +
+      diagramSection(condition) +
+      "</div>" +
       '<div class="answer-sections">' +
       chatSection(
         "symptoms",
@@ -865,7 +1044,7 @@
         "citations",
         "citations",
         "Citations (" + condition.citations.length + ")",
-        bulletList(condition.citations),
+        citationsList(condition.citations),
         !intent,
       ) +
       "</div>" +
@@ -876,6 +1055,11 @@
       '">' +
       icon("download") +
       " Download PDF</button>" +
+      '<button class="btn btn-secondary btn-sm" type="button" data-action="copy" data-cond="' +
+      idx +
+      '">' +
+      icon("copy") +
+      " Copy</button>" +
       '<button class="btn btn-secondary btn-sm" type="button" data-action="share" data-cond="' +
       idx +
       '">' +
@@ -1199,6 +1383,74 @@
     );
   }
 
+  /* v12 — after rendering an answer, scan its text nodes for known
+     glossary terms and wrap each first occurrence in a clickable chip. */
+  var GLOSSARY_PATTERN = (function () {
+    var alts = [];
+    for (var i = 0; i < GLOSSARY.length; i++) {
+      var entry = GLOSSARY[i];
+      var terms = [entry.term].concat(entry.aliases);
+      for (var t = 0; t < terms.length; t++) {
+        var clean = String(terms[t]).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        if (clean.length >= 2) alts.push(clean);
+      }
+    }
+    alts.sort(function (a, b) { return b.length - a.length; });
+    return new RegExp("\\b(" + alts.join("|") + ")\\b", "i");
+  })();
+  function decorateGlossary(root) {
+    if (!root || !root.querySelectorAll) return;
+    if (root.classList && root.classList.contains("history-echo")) return;
+    var targets = root.querySelectorAll(
+      ".answer-summary, .acc-body p, .acc-body li, .cmp-summary, .cmp-prog",
+    );
+    var seen = {};
+    for (var i = 0; i < targets.length; i++) {
+      decorateNode(targets[i], seen);
+    }
+  }
+  function decorateNode(node, seen) {
+    var walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (n) {
+        var p = n.parentElement;
+        while (p) {
+          if (p.tagName === "A" || p.tagName === "BUTTON" ||
+              (p.classList && (p.classList.contains("glossary-chip") || p.classList.contains("chip")))) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          if (p === node) break;
+          p = p.parentElement;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    });
+    var textNodes = [];
+    var n;
+    while ((n = walker.nextNode())) textNodes.push(n);
+    for (var i = 0; i < textNodes.length; i++) {
+      var tn = textNodes[i];
+      var text = tn.nodeValue;
+      var m = GLOSSARY_PATTERN.exec(text);
+      if (!m) continue;
+      var key = m[1].toLowerCase();
+      if (seen[key]) continue;
+      seen[key] = true;
+      var before = text.slice(0, m.index);
+      var matched = m[1];
+      var after = text.slice(m.index + matched.length);
+      var span = document.createElement("button");
+      span.type = "button";
+      span.className = "glossary-chip";
+      span.setAttribute("data-term", matched);
+      span.textContent = matched;
+      var parent = tn.parentNode;
+      parent.insertBefore(document.createTextNode(before), tn);
+      parent.insertBefore(span, tn);
+      parent.insertBefore(document.createTextNode(after), tn);
+      parent.removeChild(tn);
+    }
+  }
+
   /* v11 — identity, empathy, crisis, and follow-up intents. */
   function isIdentity(query) {
     var q = normalize(query);
@@ -1232,24 +1484,46 @@
 
   function isCrisis(query) {
     var q = normalize(query);
-    return hasAny(q, [
-      "kill myself",
-      "killing myself",
-      "want to die",
-      "wanna die",
-      "end my life",
-      "ending my life",
-      "end it all",
-      "ending it all",
-      "suicide",
-      "suicidal",
-      "harm myself",
-      "hurt myself",
-      "self harm",
-      "self-harm",
-      "no reason to live",
-      "better off dead",
-    ]);
+    /* Require first-person + present-tense intent so "this homework is
+       killing me" and lyrics quotes don't trip the crisis response. */
+    var firstPerson = [
+      "i want to die",
+      "i wanna die",
+      "i m going to die",
+      "im going to die",
+      "i want to kill myself",
+      "i wanna kill myself",
+      "i m going to kill myself",
+      "im going to kill myself",
+      "i want to end my life",
+      "i m ending my life",
+      "im ending my life",
+      "i want to end it all",
+      "i m thinking about suicide",
+      "im thinking about suicide",
+      "i m thinking of suicide",
+      "im thinking of suicide",
+      "i feel suicidal",
+      "i m suicidal",
+      "im suicidal",
+      "i want to harm myself",
+      "i want to hurt myself",
+      "i m going to harm myself",
+      "im going to harm myself",
+      "i m going to hurt myself",
+      "im going to hurt myself",
+      "i have no reason to live",
+      "i d be better off dead",
+      "id be better off dead",
+      "i would be better off dead",
+      "i m better off dead",
+      "im better off dead",
+      "i don t want to live",
+      "i dont want to live",
+      "i can t go on",
+      "i cant go on",
+    ];
+    return hasAny(q, firstPerson);
   }
   function crisisCard() {
     return plainCard("Please reach out — you don't have to do this alone", [
@@ -1333,9 +1607,286 @@
       q === "more details" ||
       q === "and" ||
       q === "and?" ||
-      q === "ok" ||
-      q === "okay"
+      q === "keep going"
     );
+  }
+
+  /* v12 — small-talk, off-topic, "are you sure", acknowledgement,
+     conversation memory, and compare-X-and-Y. */
+  function isSmallTalk(query) {
+    var q = normalize(query);
+    var exact = [
+      "whats up", "what s up", "wassup", "sup", "yo", "hru", "wyd",
+      "how are you", "how r u", "how are u", "how are ya", "how are things",
+      "how is it going", "how s it going", "hows it going",
+      "how have you been", "how ve you been", "how you doing",
+      "you good", "u good", "you there", "are you there",
+      "good morning", "good afternoon", "good evening", "good night",
+      "nice to meet you", "nice talking to you",
+    ];
+    if (exact.indexOf(q) !== -1) return true;
+    if (q.length <= 16 && /^(yo+|sup+|hey+|hi+|hello+)$/.test(q)) return true;
+    return false;
+  }
+  function smallTalkCard() {
+    var who = STORE.get("name", "");
+    var hi = who ? "Hey " + escapeHtml(who) + " — " : "Hey — ";
+    return plainCard(hi + "I'm here", [
+      "I'm doing fine, thanks for asking. I'm a medical-information assistant, so small talk isn't really my thing, but I'm always ready to look up a condition for you.",
+      "Try something like &ldquo;symptoms of lupus,&rdquo; &ldquo;what triggers asthma flares,&rdquo; or &ldquo;what is BNP.&rdquo;",
+    ]);
+  }
+
+  function isAck(query) {
+    var q = normalize(query);
+    var acks = [
+      "ok", "okay", "alright", "k", "kk", "cool", "nice", "got it",
+      "i see", "makes sense", "fair", "fair enough", "right", "true",
+      "sure", "sounds good", "great", "good", "perfect", "lol",
+      "haha", "ha", "huh", "interesting", "wow", "oh", "ah", "hmm",
+      "noted", "understood", "k thanks", "okay thanks", "ok thank you",
+    ];
+    return acks.indexOf(q) !== -1;
+  }
+  function ackCard() {
+    return plainCard("Anytime", [
+      "Let me know if there's anything else you want to look up — symptoms, treatment, triggers, pregnancy, red flags, or a medical term.",
+    ]);
+  }
+
+  function isAreYouSure(query) {
+    var q = normalize(query);
+    return (
+      q === "are you sure" ||
+      q === "really" ||
+      q === "really?" ||
+      q === "for real" ||
+      q === "for real?" ||
+      q === "seriously" ||
+      q === "is that true" ||
+      q === "is that right" ||
+      q === "are you sure about that" ||
+      q === "how do you know" ||
+      q === "where did you get that" ||
+      q === "where does that come from" ||
+      q === "what s your source" ||
+      q === "whats your source" ||
+      q === "what is your source" ||
+      q === "prove it" ||
+      q === "source" ||
+      q === "sources" ||
+      q === "citation" ||
+      q === "citations"
+    );
+  }
+  function sourceCard() {
+    var cond = activeCondition;
+    if (!cond) {
+      return plainCard("Where my answers come from", [
+        "Zuuno's answers are pulled from a curated knowledge base built from medical textbooks (Harrison's, Robbins, Kelley & Firestein, Braunwald's, Williams Endocrinology) and society guidelines (ACR, EULAR, ADA, GINA, GOLD, AHA, ECCO, ATA). Each condition card lists the specific sources used. Ask me about a condition and I'll show you the citations.",
+      ]);
+    }
+    var html =
+      '<article class="answer-card">' +
+      '<div class="answer-head">' +
+      '<div class="answer-title-row"><h2>Sources for ' +
+      escapeHtml(cond.name) +
+      '</h2><span class="chip chip-teal">Citations</span></div>' +
+      '<p class="answer-summary">These are the references behind the answers Zuuno gives about ' +
+      escapeHtml(cond.name) +
+      '. Each one links to the original source.</p>' +
+      citationsList(cond.citations) +
+      "</div></article>";
+    return html;
+  }
+
+  function isOffTopic(query) {
+    var q = normalize(query);
+    if (!q) return false;
+    var topics = [
+      "weather", "sports", "score", "football", "soccer", "basketball",
+      "baseball", "hockey", "oilers", "lakers", "yankees", "knicks",
+      "nfl", "nba", "mlb", "nhl", "ufc", "fifa", "world cup",
+      "stocks", "stock market", "crypto", "bitcoin", "ethereum",
+      "politics", "election", "president", "trump", "biden",
+      "movie", "movies", "film", "netflix", "spotify", "song",
+      "lyrics", "joke", "tell me a joke", "sing", "rap",
+      "recipe", "cook", "code", "programming", "javascript", "python",
+      "math problem", "homework", "essay", "summarize this",
+      "translate", "translation",
+      "capital of", "tallest", "biggest", "richest", "fastest",
+      "video game", "minecraft", "roblox", "fortnite",
+    ];
+    return hasAny(q, topics);
+  }
+  function offTopicCard() {
+    return plainCard("I'm medical-only", [
+      "I'm Zuuno's medical-information assistant — I only answer questions about medical conditions, symptoms, treatments, and related topics. I can't help with sports, weather, news, math, code, or general trivia.",
+      "Try a medical question like &ldquo;what triggers asthma flares,&rdquo; &ldquo;how is lupus diagnosed,&rdquo; or &ldquo;what is A1c.&rdquo;",
+    ]);
+  }
+
+  /* Conversation memory — keeps last few exchanges so the user can
+     reference earlier turns. */
+  var CHAT_HISTORY = [];
+  function rememberExchange(userText, replyHtml) {
+    CHAT_HISTORY.push({ user: String(userText || ""), html: String(replyHtml || "") });
+    if (CHAT_HISTORY.length > 8) CHAT_HISTORY.shift();
+  }
+  function lastUserMessage() {
+    if (!CHAT_HISTORY.length) return null;
+    return CHAT_HISTORY[CHAT_HISTORY.length - 1].user;
+  }
+  function priorUserMessage() {
+    if (CHAT_HISTORY.length < 2) return null;
+    return CHAT_HISTORY[CHAT_HISTORY.length - 2].user;
+  }
+  function priorAssistantHtml() {
+    if (CHAT_HISTORY.length < 2) return null;
+    return CHAT_HISTORY[CHAT_HISTORY.length - 2].html;
+  }
+  function isAskingAboutHistory(query) {
+    var q = normalize(query);
+    if (
+      hasAny(q, [
+        "what did i say",
+        "what did i ask",
+        "what did i just say",
+        "what did i just ask",
+        "what was my question",
+        "what was my last question",
+        "my previous question",
+        "my last question",
+        "my last message",
+        "what i said",
+        "what i just said",
+        "what i just asked",
+        "what i asked",
+        "previous question",
+        "earlier question",
+        "what was that question",
+      ])
+    ) {
+      return true;
+    }
+    return /^(what|tell me what) did i (just )?(say|ask|type|write)/.test(q);
+  }
+  function isAskingAboutAssistantHistory(query) {
+    var q = normalize(query);
+    return hasAny(q, [
+      "what did you say",
+      "what was your answer",
+      "what was your last answer",
+      "previous answer",
+      "the last answer",
+      "the previous answer",
+      "the answer before",
+      "your last answer",
+      "your previous answer",
+      "say that again",
+      "repeat that",
+      "repeat the last",
+      "show that again",
+    ]);
+  }
+  function historyEchoCard(role) {
+    if (role === "assistant") {
+      var prev = priorAssistantHtml();
+      if (!prev) {
+        return plainCard("Nothing earlier to repeat", [
+          "I don&#39;t have a previous answer to show yet. Ask me something and I&#39;ll respond.",
+        ]);
+      }
+      return (
+        '<article class="answer-card history-echo">' +
+        '<p class="followup-label" style="margin:14px 14px 0">Your previous answer</p>' +
+        '<div style="padding:0 14px 14px">' +
+        prev +
+        "</div></article>"
+      );
+    }
+    var prevU = priorUserMessage();
+    if (!prevU) {
+      return plainCard("Nothing earlier to show", [
+        "I don&#39;t have a previous question on file yet.",
+      ]);
+    }
+    return plainCard("You just asked", ['&ldquo;' + escapeHtml(prevU) + '&rdquo;']);
+  }
+
+  /* Compare two conditions side by side. */
+  function isCompare(query) {
+    var q = normalize(query);
+    return (
+      /\bcompare\b/.test(q) ||
+      /\bvs\b/.test(q) ||
+      /\bversus\b/.test(q) ||
+      /difference between/.test(q) ||
+      /\bdifferences? between\b/.test(q)
+    );
+  }
+  function extractTwoConditions(query) {
+    var q = normalize(query)
+      .replace(/^(compare|whats|what s|what is|tell me|please)\s+/, "")
+      .replace(/\b(the|a|an)\b/g, " ");
+    var parts = q.split(/\s+(?:vs|versus|and|or|to|with|from|between)\s+/);
+    if (parts.length < 2) return null;
+    var found = [];
+    for (var i = 0; i < parts.length && found.length < 2; i++) {
+      var m = findCondition(parts[i]) || fuzzyFindCondition(parts[i]);
+      if (m && !found.some(function (f) { return f.condition.name === m.condition.name; })) {
+        found.push(m);
+      }
+    }
+    if (found.length < 2) {
+      var all = [];
+      for (var c = 0; c < CONDITIONS.length; c++) {
+        var cond = CONDITIONS[c];
+        var terms = [normalize(cond.name)];
+        for (var s = 0; s < cond.synonyms.length; s++) terms.push(normalize(cond.synonyms[s]));
+        for (var t = 0; t < terms.length; t++) {
+          if (terms[t] && q.indexOf(terms[t]) !== -1) {
+            if (!all.some(function (a) { return a.name === cond.name; })) {
+              all.push(cond);
+            }
+            break;
+          }
+        }
+      }
+      if (all.length >= 2) found = [{ condition: all[0], score: 0.9 }, { condition: all[1], score: 0.9 }];
+    }
+    return found.length >= 2 ? [found[0].condition, found[1].condition] : null;
+  }
+  function compareCard(a, b) {
+    function col(c) {
+      return (
+        '<div class="cmp-col">' +
+        '<h3 class="cmp-title">' + escapeHtml(c.name) + "</h3>" +
+        '<span class="chip chip-teal">ICD-10 ' + escapeHtml(c.icd10) + "</span>" +
+        '<p class="cmp-summary">' + escapeHtml(c.summary) + "</p>" +
+        '<p class="section-label">Key symptoms</p>' +
+        bulletList(c.symptoms.slice(0, 3).map(escapeHtml)) +
+        '<p class="section-label">First-line treatment</p>' +
+        bulletList(c.medsFirst.slice(0, 2).map(escapeHtml)) +
+        '<p class="section-label">Prognosis</p>' +
+        '<p class="cmp-prog">' + escapeHtml(c.prognosis) + "</p>" +
+        "</div>"
+      );
+    }
+    return (
+      '<article class="answer-card compare-card">' +
+      '<div class="answer-head">' +
+      '<div class="answer-title-row"><h2>' +
+      escapeHtml(a.name) + " vs " + escapeHtml(b.name) +
+      "</h2></div></div>" +
+      '<div class="cmp-grid">' + col(a) + col(b) + "</div>" +
+      "</article>"
+    );
+  }
+  function compareNeedTwoCard() {
+    return plainCard("Pick two conditions to compare", [
+      "I need two conditions from my knowledge base to make a comparison. Try &ldquo;compare lupus and RA&rdquo; or &ldquo;type 1 vs type 2 diabetes.&rdquo;",
+    ]);
   }
 
   /* v11 — Levenshtein distance for typo-tolerant condition matching. */
@@ -1396,7 +1947,7 @@
     var q = normalize(query);
     for (var i = 0; i < FAQ_TOPICS.length; i++) {
       var topic = FAQ_TOPICS[i];
-      if (answers[topic.id] && hasAny(q, topic.keys)) return topic;
+      if (answers[topic.id] && hasAnyUnnegated(q, topic.keys)) return topic;
     }
     return null;
   }
@@ -1521,19 +2072,31 @@
   function respondTo(text) {
     if (isCrisis(text)) return crisisCard();
     if (isUnsafeQuery(text)) return guardrailCard(text);
+    if (isAskingAboutAssistantHistory(text)) return historyEchoCard("assistant");
+    if (isAskingAboutHistory(text)) return historyEchoCard("user");
+    if (isAreYouSure(text)) return sourceCard();
     if (isIdentity(text)) return identityCard();
     if (isEmpathy(text)) return empathyCard();
     if (isGreeting(text)) return greetingCard();
+    if (isSmallTalk(text)) return smallTalkCard();
     if (isThanks(text))
       return plainCard("You're welcome", [
         "Glad to help. Ask me anything else about a condition you have.",
       ]);
+    if (isAck(text)) return ackCard();
     if (isHelp(text)) return helpCard();
     if (isMore(text)) {
       if (activeCondition) return answerCard(activeCondition, 0.95, null);
       return plainCard("Ask me a question first", [
         "I&#39;d love to expand, but you haven&#39;t asked about a condition yet. Try typing a condition name like &ldquo;lupus&rdquo; or &ldquo;asthma&rdquo;, or pick one from the dropdown.",
       ]);
+    }
+
+    if (isCompare(text)) {
+      var pair = extractTwoConditions(text);
+      if (!pair) return compareNeedTwoCard();
+      setActiveCondition(pair[0]);
+      return compareCard(pair[0], pair[1]);
     }
 
     var intent = detectIntent(text);
@@ -1562,6 +2125,7 @@
       }
       return answerCard(match.condition, match.score, intent);
     }
+    if (isOffTopic(text)) return offTopicCard();
     return noMatchCard();
   }
 
@@ -1582,7 +2146,11 @@
 
     window.setTimeout(function () {
       typingEl.remove();
-      chatStream.insertAdjacentHTML("beforeend", respondTo(text));
+      var html = respondTo(text);
+      chatStream.insertAdjacentHTML("beforeend", html);
+      var newCard = chatStream.lastElementChild;
+      if (newCard) decorateGlossary(newCard);
+      rememberExchange(text, html);
     }, 650);
   }
 
@@ -1600,6 +2168,32 @@
       for (var i = 0; i < items.length; i++) h += "<li>" + escapeHtml(items[i]) + "</li>";
       return h + "</ul>";
     }
+    var faq = CONDITION_FAQ[c.name];
+    var faqHtml = "";
+    if (faq) {
+      var short = CONDITION_SHORT[c.name] || c.name;
+      var seen = false;
+      for (var i = 0; i < FAQ_TOPICS.length; i++) {
+        var topic = FAQ_TOPICS[i];
+        if (!faq[topic.id]) continue;
+        if (!seen) {
+          faqHtml += "<h3>Frequently Asked Questions</h3>";
+          seen = true;
+        }
+        faqHtml +=
+          "<h4>" + escapeHtml(topic.q(short)) + "</h4>" +
+          "<p>" + escapeHtml(faq[topic.id]) + "</p>";
+      }
+    }
+    var citationsHtml = "<ul>";
+    for (var ci = 0; ci < c.citations.length; ci++) {
+      var ref = c.citations[ci];
+      var url = CITATION_LINKS[ref];
+      citationsHtml += "<li>" + escapeHtml(ref) +
+        (url ? ' &mdash; <span class="cite-url">' + escapeHtml(url) + "</span>" : "") +
+        "</li>";
+    }
+    citationsHtml += "</ul>";
     return (
       '<div class="print-report">' +
       "<h1>Zuuno — Condition Report</h1>" +
@@ -1620,8 +2214,9 @@
       "<h3>Prognosis</h3><p>" +
       escapeHtml(c.prognosis) +
       "</p>" +
+      faqHtml +
       "<h3>Citations</h3>" +
-      ul(c.citations) +
+      citationsHtml +
       '<p class="print-disclaimer">This report is educational reference information only. ' +
       "It is not medical advice and does not diagnose or prescribe. Consult a licensed " +
       "healthcare professional.</p>" +
@@ -1651,13 +2246,27 @@
     }, 1700);
   }
 
+  function buildShareText(condition) {
+    var parts = [
+      "Zuuno — " + condition.name + " (ICD-10 " + condition.icd10 + ")",
+      "",
+      condition.summary,
+      "",
+      "Symptoms:",
+    ];
+    for (var i = 0; i < condition.symptoms.length; i++) {
+      parts.push("• " + condition.symptoms[i]);
+    }
+    parts.push("", "First-line treatment:");
+    for (var f = 0; f < condition.medsFirst.length; f++) {
+      parts.push("• " + condition.medsFirst[f]);
+    }
+    parts.push("", "Prognosis: " + condition.prognosis);
+    parts.push("", "Educational reference only; not medical advice.");
+    return parts.join("\n");
+  }
   function shareCondition(condition, btn) {
-    var text =
-      "Zuuno — " +
-      condition.name +
-      "\n\n" +
-      condition.summary +
-      "\n\nEducational reference only; not medical advice.";
+    var text = buildShareText(condition);
     if (navigator.share) {
       navigator.share({ title: "Zuuno — " + condition.name, text: text }).catch(function () {});
     } else if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -1671,6 +2280,29 @@
       );
     } else {
       flashButton(btn, "Sharing not supported");
+    }
+  }
+  function copyCondition(condition, btn) {
+    var text = buildShareText(condition);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        function () { flashButton(btn, "Copied"); },
+        function () { flashButton(btn, "Could not copy"); },
+      );
+    } else {
+      try {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        flashButton(btn, "Copied");
+      } catch (e) {
+        flashButton(btn, "Could not copy");
+      }
     }
   }
 
@@ -1694,6 +2326,14 @@
         var cond = CONDITIONS[Number(actionBtn.getAttribute("data-cond"))];
         if (act === "pdf" && cond) downloadPdf(cond);
         else if (act === "share" && cond) shareCondition(cond, actionBtn);
+        else if (act === "copy" && cond) copyCondition(cond, actionBtn);
+        else if (act === "premium-prompt") openModal(premiumModal);
+        return;
+      }
+      var gloss = e.target.closest(".glossary-chip");
+      if (gloss) {
+        var term = gloss.getAttribute("data-term");
+        if (term) sendMessage("define " + term);
         return;
       }
       var head = e.target.closest(".acc-head");
@@ -1795,9 +2435,7 @@
       icon("star") +
       "</button></div>" +
       '<div class="chip-row">' +
-      '<span class="chip chip-teal">' +
-      p.distanceMi.toFixed(1) +
-      " mi</span>" +
+      distanceChip(p) +
       '<span class="chip"><span class="rating">&#9733;</span> ' +
       p.rating.toFixed(1) +
       "</span>" +
@@ -1834,7 +2472,8 @@
   function renderProviders() {
     var rows = PROVIDERS.filter(function (p) {
       if (providerState.location !== "all" && p.city !== providerState.location) return false;
-      if (p.distanceMi > providerState.radius) return false;
+      var d = distanceMiFor(p);
+      if (d != null && d > providerState.radius) return false;
       if (providerState.specialty !== "all" && p.specialty !== providerState.specialty) return false;
       if (providerState.telehealthOnly && !p.telehealth) return false;
       if (providerState.acceptingOnly && !p.acceptingNew) return false;
@@ -1848,7 +2487,11 @@
         var bM = b.specialty === persoSpecialty ? 0 : 1;
         if (aM !== bM) return aM - bM;
       }
-      return a.distanceMi - b.distanceMi;
+      var da = distanceMiFor(a);
+      var db = distanceMiFor(b);
+      if (da == null) return db == null ? 0 : 1;
+      if (db == null) return -1;
+      return da - db;
     });
 
     providerMeta.innerHTML =
@@ -1962,8 +2605,10 @@
       PHARMACY_KIND_LABELS[p.kind] +
       "</p></div></div>" +
       '<div class="chip-row">' +
-      (p.distanceMi != null
-        ? '<span class="chip chip-teal">' + p.distanceMi.toFixed(1) + " mi</span>"
+      (distanceMiFor(p) != null
+        ? '<span class="chip chip-teal">' + distanceMiFor(p).toFixed(1) +
+          (userLocation && userLocation.on ? " mi away" : " mi") +
+          "</span>"
         : '<span class="chip chip-teal">Ships nationwide</span>') +
       '<span class="chip ' +
       PHARMACY_KIND_CHIPS[p.kind] +
@@ -2103,9 +2748,13 @@
     if (!id) return null;
     var locs = (p.contactsLocationsModule && p.contactsLocationsModule.locations) || [];
     var siteParts = [];
-    for (var i = 0; i < locs.length && i < 4; i++) {
-      var part = [locs[i].city, locs[i].state].filter(Boolean).join(", ");
-      if (part) siteParts.push(part);
+    var countrySet = {};
+    for (var i = 0; i < locs.length; i++) {
+      if (i < 4) {
+        var part = [locs[i].city, locs[i].state].filter(Boolean).join(", ");
+        if (part) siteParts.push(part);
+      }
+      if (locs[i].country) countrySet[locs[i].country] = true;
     }
     var ivs = (p.armsInterventionsModule && p.armsInterventionsModule.interventions) || [];
     var ivNames = [];
@@ -2130,6 +2779,7 @@
       interventions: ivNames.length ? ivNames.join(" · ") : "See the study record",
       sites: siteParts.length ? siteParts.join(" · ") : "See ClinicalTrials.gov for locations",
       siteCount: locs.length,
+      countries: Object.keys(countrySet),
       eligibility: truncate(
         (p.eligibilityModule && p.eligibilityModule.eligibilityCriteria) ||
           "See the study record for full eligibility criteria.",
@@ -2163,7 +2813,13 @@
     var matched = FALLBACK_TRIALS.filter(function (t) {
       return t.condition.indexOf(q) !== -1 || t.title.toLowerCase().indexOf(q) !== -1;
     });
-    return matched.length ? matched : FALLBACK_TRIALS;
+    var list = matched.length ? matched : FALLBACK_TRIALS;
+    return list.map(function (t) {
+      var copy = {};
+      for (var k in t) copy[k] = t[k];
+      if (!copy.countries) copy.countries = ["United States"];
+      return copy;
+    });
   }
 
   var trialList = document.getElementById("trial-list");
@@ -2172,6 +2828,7 @@
   var trialSearchBtn = document.getElementById("trial-search-btn");
   var trialPhase = document.getElementById("trial-phase");
   var trialStatus = document.getElementById("trial-status");
+  var trialCountry = document.getElementById("trial-country");
   var trialFilters = document.getElementById("trial-filters");
   var trialViewSearch = document.getElementById("trial-view-search");
   var trialViewWatching = document.getElementById("trial-view-watching");
@@ -2180,6 +2837,7 @@
     query: "",
     phase: "all",
     status: "all",
+    country: "all",
     view: "search",
     loading: false,
     source: "live",
@@ -2285,6 +2943,10 @@
       rows = trialResults.filter(function (t) {
         if (trialState.phase !== "all" && t.phase !== trialState.phase) return false;
         if (trialState.status !== "all" && t.status !== trialState.status) return false;
+        if (trialState.country !== "all") {
+          var cs = t.countries || [];
+          if (cs.indexOf(trialState.country) === -1) return false;
+        }
         return true;
       });
       if (activeCondition) {
@@ -2338,6 +3000,33 @@
     trialList.innerHTML = html;
   }
 
+  function refreshCountryOptions() {
+    if (!trialCountry) return;
+    var set = {};
+    for (var i = 0; i < trialResults.length; i++) {
+      var cs = trialResults[i].countries || [];
+      for (var j = 0; j < cs.length; j++) set[cs[j]] = true;
+    }
+    var countries = Object.keys(set).sort();
+    var current = trialState.country;
+    var html = '<option value="all">All countries</option>';
+    for (var k = 0; k < countries.length; k++) {
+      html +=
+        '<option value="' +
+        escapeHtml(countries[k]) +
+        '">' +
+        escapeHtml(countries[k]) +
+        "</option>";
+    }
+    trialCountry.innerHTML = html;
+    if (countries.indexOf(current) !== -1) {
+      trialCountry.value = current;
+    } else {
+      trialCountry.value = "all";
+      trialState.country = "all";
+    }
+  }
+
   function runTrialSearch(query) {
     query = String(query || "").trim();
     if (!query) return;
@@ -2351,12 +3040,14 @@
         trialState.loading = false;
         trialResults = results;
         trialState.source = "live";
+        refreshCountryOptions();
         renderTrials();
       })
       .catch(function () {
         trialState.loading = false;
         trialResults = fallbackTrialsFor(query);
         trialState.source = "curated";
+        refreshCountryOptions();
         renderTrials();
       });
   }
@@ -2401,6 +3092,12 @@
       trialState.status = trialStatus.value;
       renderTrials();
     });
+    if (trialCountry) {
+      trialCountry.addEventListener("change", function () {
+        trialState.country = trialCountry.value;
+        renderTrials();
+      });
+    }
     trialViewSearch.addEventListener("click", function () {
       trialState.view = "search";
       renderTrials();
@@ -2852,21 +3549,157 @@
     });
   }
 
-  /* Edit-your-conditions picker inside Settings */
-  var settingsConditionsPick = document.getElementById("settings-conditions-pick");
-  function fillSettingsConditions() {
-    if (!settingsConditionsPick) return;
-    settingsConditionsPick.innerHTML = "";
-    for (var i = 0; i < CONDITIONS.length; i++) {
-      var b = document.createElement("button");
-      b.type = "button";
-      b.className = "pill-btn" + (profileConditions.indexOf(i) !== -1 ? " on" : "");
-      b.setAttribute("data-cond", String(i));
-      b.textContent = CONDITIONS[i].name;
-      settingsConditionsPick.appendChild(b);
+  /* v12 — opt-in geolocation. Stored in the user's profile and used
+     to compute real distance on provider and pharmacy cards. */
+  var userLocation = STORE.get("location", { on: false, lat: null, lng: null });
+  var locationToggle = document.getElementById("location-toggle");
+  var locationSub = document.getElementById("location-sub");
+  function refreshLocationToggle() {
+    if (!locationToggle) return;
+    var on = !!(userLocation && userLocation.on && userLocation.lat != null);
+    locationToggle.textContent = on ? "On" : "Off";
+    locationToggle.classList.toggle("on", on);
+    if (locationSub) {
+      if (on) {
+        locationSub.textContent =
+          "Using your location · " +
+          userLocation.lat.toFixed(2) + ", " + userLocation.lng.toFixed(2);
+      } else {
+        locationSub.textContent = "Sort providers and pharmacies by real distance from you";
+      }
     }
   }
+  function setUserLocation(loc) {
+    userLocation = loc;
+    STORE.set("location", userLocation);
+    refreshLocationToggle();
+    if (typeof renderProviders === "function") renderProviders();
+    if (typeof renderPharmacies === "function") renderPharmacies();
+  }
+  function requestUserLocation() {
+    if (!navigator.geolocation) {
+      if (locationSub) locationSub.textContent = "Geolocation is not supported on this device";
+      return;
+    }
+    if (locationSub) locationSub.textContent = "Requesting your location…";
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        setUserLocation({ on: true, lat: pos.coords.latitude, lng: pos.coords.longitude });
+      },
+      function (err) {
+        if (locationSub) {
+          locationSub.textContent =
+            err && err.code === 1
+              ? "Permission denied — turn on location in your browser"
+              : "Couldn’t get your location — try again";
+        }
+        userLocation = { on: false, lat: null, lng: null };
+        STORE.set("location", userLocation);
+        if (locationToggle) {
+          locationToggle.textContent = "Off";
+          locationToggle.classList.remove("on");
+        }
+      },
+      { enableHighAccuracy: false, maximumAge: 5 * 60 * 1000, timeout: 10000 },
+    );
+  }
+  if (locationToggle) {
+    locationToggle.addEventListener("click", function () {
+      if (userLocation && userLocation.on) {
+        setUserLocation({ on: false, lat: null, lng: null });
+      } else {
+        requestUserLocation();
+      }
+    });
+  }
+  refreshLocationToggle();
+
+  /* Haversine distance in miles between two lat/lng pairs. */
+  function haversineMiles(lat1, lng1, lat2, lng2) {
+    if (lat1 == null || lng1 == null || lat2 == null || lng2 == null) return null;
+    var R = 3958.8;
+    var toRad = function (d) { return (d * Math.PI) / 180; };
+    var dLat = toRad(lat2 - lat1);
+    var dLng = toRad(lng2 - lng1);
+    var a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+  function distanceMiFor(item) {
+    if (userLocation && userLocation.on && userLocation.lat != null && item.lat != null) {
+      return haversineMiles(userLocation.lat, userLocation.lng, item.lat, item.lng);
+    }
+    if (typeof item.distanceMi === "number") return item.distanceMi;
+    return null;
+  }
+
+  /* Edit-your-conditions picker inside Settings */
+  /* v12 — shared, categorized condition-picker renderer.
+     selectedIdxFn(i) → bool decides which pills start "on". */
+  function renderConditionPicker(container, selectedIdxFn) {
+    if (!container) return;
+    container.innerHTML = "";
+    var grouped = {};
+    for (var i = 0; i < CONDITIONS.length; i++) {
+      var cat = CONDITION_CATEGORY[CONDITIONS[i].name] || "Other";
+      (grouped[cat] = grouped[cat] || []).push(i);
+    }
+    var order = CATEGORY_ORDER.concat(["Other"]);
+    for (var k = 0; k < order.length; k++) {
+      var cat2 = order[k];
+      if (!grouped[cat2]) continue;
+      var group = document.createElement("div");
+      group.className = "cond-cat-group";
+      var header = document.createElement("p");
+      header.className = "cond-cat-label";
+      header.textContent = cat2;
+      group.appendChild(header);
+      var pills = document.createElement("div");
+      pills.className = "cond-cat-pills";
+      for (var p = 0; p < grouped[cat2].length; p++) {
+        var idx = grouped[cat2][p];
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "pill-btn" + (selectedIdxFn(idx) ? " on" : "");
+        b.setAttribute("data-cond", String(idx));
+        b.textContent = CONDITIONS[idx].name;
+        pills.appendChild(b);
+      }
+      group.appendChild(pills);
+      container.appendChild(group);
+    }
+  }
+  function attachPickerSearch(input, container) {
+    if (!input || !container) return;
+    input.addEventListener("input", function () {
+      var q = String(input.value || "").toLowerCase().trim();
+      var groups = container.querySelectorAll(".cond-cat-group");
+      for (var i = 0; i < groups.length; i++) {
+        var group = groups[i];
+        var pills = group.querySelectorAll(".pill-btn");
+        var anyShown = false;
+        for (var j = 0; j < pills.length; j++) {
+          var name = pills[j].textContent.toLowerCase();
+          var hit = q === "" || name.indexOf(q) !== -1;
+          pills[j].style.display = hit ? "" : "none";
+          if (hit) anyShown = true;
+        }
+        group.style.display = anyShown ? "" : "none";
+      }
+    });
+  }
+
+  var settingsConditionsPick = document.getElementById("settings-conditions-pick");
+  var settingsConditionsSearch = document.getElementById("settings-conditions-search");
+  function fillSettingsConditions() {
+    renderConditionPicker(settingsConditionsPick, function (i) {
+      return profileConditions.indexOf(i) !== -1;
+    });
+  }
   if (settingsConditionsPick) {
+    attachPickerSearch(settingsConditionsSearch, settingsConditionsPick);
     settingsConditionsPick.addEventListener("click", function (e) {
       var b = e.target.closest("[data-cond]");
       if (!b) return;
@@ -2936,15 +3769,10 @@
     if (onboardStep3) onboardStep3.hidden = n !== 3;
   }
 
+  var onboardConditionsSearch = document.getElementById("onboard-conditions-search");
   if (onboarding && onboardConditions) {
-    for (var oc = 0; oc < CONDITIONS.length; oc++) {
-      var cbtn = document.createElement("button");
-      cbtn.type = "button";
-      cbtn.className = "pill-btn";
-      cbtn.setAttribute("data-cond", String(oc));
-      cbtn.textContent = CONDITIONS[oc].name;
-      onboardConditions.appendChild(cbtn);
-    }
+    renderConditionPicker(onboardConditions, function () { return false; });
+    attachPickerSearch(onboardConditionsSearch, onboardConditions);
     onboardConditions.addEventListener("click", function (e) {
       var b = e.target.closest("[data-cond]");
       if (b) b.classList.toggle("on");

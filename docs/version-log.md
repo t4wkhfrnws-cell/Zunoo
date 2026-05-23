@@ -375,3 +375,79 @@ into the knowledge base, so very specific or very unusual questions still
 fall back to the overview card or the no-match card. The empathy and
 crisis responses are simple keyword triggers, not a substitute for a
 mental-health professional.
+
+---
+
+## App version #12 — Citations, Glossary Chips, Compare, Geolocation, Diagrams  *(Milestone 3)*
+
+**Changes in visual layout**
+
+A lot of polish in this version. Citations under each chatbot answer are
+now clickable links to the source (textbook, journal, society guideline).
+Known medical terms in any answer are wrapped as little teal chips that
+open the glossary when tapped. Two new card types appear in the chatbot:
+a side-by-side comparison card and a small "sources" card. Every answer
+card now has a third action button — Copy. The condition-picker in
+onboarding and Settings is grouped by body system (Autoimmune,
+Cardiovascular, Endocrine, GI, Neurologic, Respiratory) with a search
+box on top. The Trials tab gained a country dropdown alongside phase
+and status. Settings has a new Location section with a "Use my location"
+toggle. Each condition answer now includes a small schematic diagram
+(blurred behind a Premium upgrade prompt on the free plan). High-contrast
+mode now also works in dark mode.
+
+**Changes in functionality**
+
+- **Clickable citations** — citations link to the publisher's page (BMJ,
+  Lancet, AHA, Elsevier, GINA, GOLD, ADA, ATA, etc.); when a source has
+  no public URL it stays as plain text.
+- **Country filter in Trials** — the dropdown is populated from each
+  search's actual results and filters the list live.
+- **Inline glossary chips** — any time a known term (ANA, A1c, BNP,
+  ejection fraction, biologic, etc.) appears in an answer it becomes a
+  tappable chip that asks the glossary for a definition.
+- **Negation handling** — phrases like "I don't want to exercise" or
+  "I don't smoke" no longer wrongly trip the exercise/triggers FAQ.
+- **Conversation memory** — Zuuno remembers the last several exchanges,
+  so "what did I just say?" and "what was your previous answer?" both
+  work.
+- **Tighter crisis detection** — requires first-person + present-tense
+  intent ("I want to die," "I'm thinking of suicide"). Phrases like
+  "this homework is killing me" no longer trigger the crisis card.
+- **Compare X and Y** — "compare lupus and rheumatoid arthritis" or
+  "type 1 vs type 2 diabetes" shows a side-by-side card with summary,
+  key symptoms, first-line treatment, and prognosis for each.
+- **Searchable, categorized condition picker** — both the onboarding
+  and the Settings pickers group the 12 conditions by body system and
+  filter as you type.
+- **Copy answer** — every condition answer card has a Copy button
+  alongside Share that copies the full structured summary to your
+  clipboard.
+- **Geolocation opt-in** — turning on "Use my location" in Settings
+  asks the browser for your coordinates and uses them to sort and label
+  provider and pharmacy cards by real distance.
+- **Condition diagrams (Premium)** — each condition answer has a small
+  schematic. Free users see it blurred with an Unlock with Premium
+  button.
+- **High-contrast in dark mode** — turning on both Dark mode and
+  High contrast now produces a true high-contrast dark theme (was
+  previously light-only).
+- **PDF report now includes FAQs** — the downloaded condition report
+  contains every FAQ Q&amp;A for that condition (causes, genetic,
+  curable, diagnosis, exercise, diet, triggers, pregnancy, red flags)
+  plus citations with their full URLs.
+- **Natural-language gaps closed** — small-talk ("what's up,"
+  "how are you," "hru"), acknowledgements ("ok," "got it," "lol,"
+  "interesting"), source questions ("are you sure," "where did you get
+  that"), and clearly off-topic queries (sports, weather, news,
+  politics, code, recipes, video games) each get their own short, honest
+  response instead of the generic no-match card.
+
+**What isn't working well**
+
+Diagrams are simple schematics, not anatomical illustrations. The
+geolocation distance is straight-line (Haversine), not driving distance.
+Provider and pharmacy directories are still curated sample data, not a
+live registry. The Premium tier is still a local toggle, not a real
+subscription. Conversation memory only spans the current session — it
+isn't persisted between visits.

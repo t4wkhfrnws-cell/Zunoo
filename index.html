@@ -10,7 +10,7 @@
     />
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
     <link rel="stylesheet" href="assets/leaflet/leaflet.css" />
-    <link rel="stylesheet" href="style.css?v=11" />
+    <link rel="stylesheet" href="style.css?v=12" />
     <title>Zuuno — Medical Assistant</title>
   </head>
   <body>
@@ -221,6 +221,9 @@
             <select class="select" id="trial-status" aria-label="Trial status">
               <option value="all">All statuses</option>
             </select>
+            <select class="select" id="trial-country" aria-label="Trial country">
+              <option value="all">All countries</option>
+            </select>
           </div>
 
           <div class="results-meta" id="trial-meta"></div>
@@ -359,7 +362,14 @@
             Select any conditions you have been diagnosed with. Zuuno will personalize the
             chatbot, providers, trials, and resources for them.
           </p>
-          <div class="cond-pick" id="onboard-conditions"></div>
+          <input
+            class="input cond-pick-search"
+            type="search"
+            id="onboard-conditions-search"
+            placeholder="Search conditions…"
+            autocomplete="off"
+          />
+          <div class="cond-pick cond-pick-grouped" id="onboard-conditions"></div>
           <button
             class="btn btn-primary btn-block"
             id="onboard-next-2"
@@ -425,7 +435,23 @@
               <span>Tap to add or remove the conditions Zuuno personalizes for</span>
             </div>
           </div>
-          <div class="cond-pick" id="settings-conditions-pick"></div>
+          <input
+            class="input cond-pick-search"
+            type="search"
+            id="settings-conditions-search"
+            placeholder="Search conditions…"
+            autocomplete="off"
+          />
+          <div class="cond-pick cond-pick-grouped" id="settings-conditions-pick"></div>
+
+          <p class="section-label">Location</p>
+          <div class="set-row">
+            <div class="set-text">
+              <strong>Use my location</strong>
+              <span id="location-sub">Sort providers and pharmacies by real distance from you</span>
+            </div>
+            <button class="pill-btn" id="location-toggle" type="button">Off</button>
+          </div>
 
           <p class="section-label">Accessibility</p>
           <div class="set-row">
@@ -544,6 +570,6 @@
     <div id="print-area" aria-hidden="true"></div>
 
     <script src="assets/leaflet/leaflet.js"></script>
-    <script src="script.js?v=11"></script>
+    <script src="script.js?v=12"></script>
   </body>
 </html>
