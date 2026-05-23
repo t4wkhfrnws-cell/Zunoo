@@ -850,31 +850,541 @@
   /* v12 — premium-gated schematic diagram for each condition. The
      diagrams are intentionally simple schematics, not anatomical
      illustrations. */
+  var DIAG_RED = "#d9534f";
+  var DIAG_ORANGE = "#e08e3a";
+  var DIAG_GREEN = "#3aa46a";
   var CONDITION_DIAGRAMS = {
-    "Systemic Lupus Erythematosus":
-      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="120" cy="58" rx="30" ry="38"/><path d="M90 70 Q120 84 150 70" stroke-linecap="round"/><ellipse cx="100" cy="68" rx="9" ry="5" fill="currentColor" opacity=".25"/><ellipse cx="140" cy="68" rx="9" ry="5" fill="currentColor" opacity=".25"/><circle cx="70" cy="118" r="5" fill="currentColor" opacity=".8"/><circle cx="120" cy="118" r="5" fill="currentColor" opacity=".8"/><circle cx="170" cy="118" r="5" fill="currentColor" opacity=".8"/></g><text x="120" y="148" text-anchor="middle" font-size="11" fill="currentColor">Skin · joints · kidneys · multi-organ</text></svg>',
-    "Rheumatoid Arthritis":
-      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><path d="M70 110 L70 60 Q70 50 80 50 Q90 50 90 60 L90 110"/><path d="M95 110 L95 50 Q95 40 105 40 Q115 40 115 50 L115 110"/><path d="M120 110 L120 45 Q120 35 130 35 Q140 35 140 45 L140 110"/><path d="M145 110 L145 55 Q145 45 155 45 Q165 45 165 55 L165 110"/><circle cx="80" cy="78" r="6" fill="currentColor" opacity=".4"/><circle cx="105" cy="68" r="6" fill="currentColor" opacity=".4"/><circle cx="130" cy="64" r="6" fill="currentColor" opacity=".4"/><circle cx="155" cy="72" r="6" fill="currentColor" opacity=".4"/></g><text x="120" y="148" text-anchor="middle" font-size="11" fill="currentColor">Symmetric inflammation of small joints</text></svg>',
-    "Type 2 Diabetes Mellitus":
-      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><path d="M40 80 Q90 50 140 70 Q190 90 200 70" stroke-linecap="round"/><circle cx="60" cy="80" r="4" fill="currentColor"/><circle cx="100" cy="62" r="4" fill="currentColor"/><circle cx="140" cy="70" r="4" fill="currentColor"/><circle cx="180" cy="78" r="4" fill="currentColor"/><path d="M80 110 Q100 95 120 110" stroke-dasharray="3 3"/><text x="120" y="135" text-anchor="middle" font-size="11" fill="currentColor">Insulin resistance · blunted response</text></g></svg>',
-    "Type 1 Diabetes Mellitus":
-      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><path d="M50 80 Q70 50 110 50 Q170 50 190 80 Q170 110 110 110 Q70 110 50 80 Z"/><circle cx="80" cy="80" r="5" fill="currentColor" opacity=".35"/><circle cx="105" cy="78" r="5" fill="currentColor" opacity=".35"/><circle cx="130" cy="82" r="5" fill="currentColor" opacity=".35"/><circle cx="155" cy="80" r="5" fill="currentColor" opacity=".35"/><line x1="75" y1="75" x2="85" y2="85" stroke-width="2"/><line x1="85" y1="75" x2="75" y2="85" stroke-width="2"/><line x1="100" y1="73" x2="110" y2="83" stroke-width="2"/><line x1="110" y1="73" x2="100" y2="83" stroke-width="2"/></g><text x="120" y="135" text-anchor="middle" font-size="11" fill="currentColor">Autoimmune destruction of beta cells</text></svg>',
-    Asthma:
-      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="80" cy="80" r="32"/><circle cx="80" cy="80" r="18"/><text x="80" y="125" text-anchor="middle" font-size="10" fill="currentColor">Open</text><circle cx="170" cy="80" r="32"/><circle cx="170" cy="80" r="8" fill="currentColor" opacity=".4"/><text x="170" y="125" text-anchor="middle" font-size="10" fill="currentColor">Constricted</text></g><text x="120" y="148" text-anchor="middle" font-size="11" fill="currentColor">Airway narrowing in an attack</text></svg>',
-    "Chronic Obstructive Pulmonary Disease":
-      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><path d="M120 30 V 80"/><path d="M120 50 Q90 60 80 90 Q70 120 95 130 Q105 122 110 100"/><path d="M120 50 Q150 60 160 90 Q170 120 145 130 Q135 122 130 100"/><circle cx="92" cy="100" r="6" fill="currentColor" opacity=".3"/><circle cx="105" cy="115" r="6" fill="currentColor" opacity=".3"/><circle cx="138" cy="115" r="6" fill="currentColor" opacity=".3"/><circle cx="150" cy="100" r="6" fill="currentColor" opacity=".3"/></g><text x="120" y="150" text-anchor="middle" font-size="11" fill="currentColor">Damaged alveoli · airflow obstruction</text></svg>',
-    Hypertension:
-      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="120" cy="70" r="42"/><text x="120" y="68" text-anchor="middle" font-size="22" fill="currentColor" font-weight="600">140</text><text x="120" y="86" text-anchor="middle" font-size="12" fill="currentColor">/ 90</text><path d="M78 130 H 162" stroke-width="3"/><path d="M78 130 V 120 M162 130 V 120"/></g><text x="120" y="150" text-anchor="middle" font-size="11" fill="currentColor">Sustained elevated arterial pressure</text></svg>',
-    "Heart Failure":
-      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><path d="M120 110 C 70 80 80 40 110 50 C 120 55 120 60 120 65 C 120 60 120 55 130 50 C 160 40 170 80 120 110 Z"/><path d="M100 75 Q120 60 140 75" stroke-dasharray="3 3"/><path d="M170 90 L 200 90 M195 84 L 200 90 L 195 96"/></g><text x="120" y="150" text-anchor="middle" font-size="11" fill="currentColor">Weakened pump · reduced output</text></svg>',
-    Migraine:
-      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><path d="M75 100 C 75 50 165 50 165 100 L 165 115 Q 165 120 160 120 L 150 120 L 150 130 L 95 130 L 95 120 L 80 120 Q 75 120 75 115 Z"/><path d="M90 75 Q 100 70 110 80 Q 120 90 130 80 Q 140 70 150 80" stroke-dasharray="2 2"/><path d="M180 60 L 200 50 M180 70 L 205 70 M180 80 L 200 90" stroke-linecap="round"/></g><text x="120" y="150" text-anchor="middle" font-size="11" fill="currentColor">Unilateral throbbing · aura · photophobia</text></svg>',
-    "Multiple Sclerosis":
-      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><line x1="30" y1="80" x2="210" y2="80" stroke-width="3"/><rect x="40" y="68" width="20" height="24" rx="6"/><rect x="80" y="68" width="20" height="24" rx="6" fill="currentColor" opacity=".25"/><rect x="120" y="68" width="20" height="24" rx="6"/><rect x="160" y="68" width="20" height="24" rx="6" fill="currentColor" opacity=".25"/></g><text x="120" y="135" text-anchor="middle" font-size="11" fill="currentColor">Demyelination of CNS nerve sheaths</text></svg>',
-    "Crohn's Disease":
-      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><path d="M60 40 Q 110 40 110 80 Q 110 120 60 120"/><path d="M180 40 Q 130 40 130 80 Q 130 120 180 120"/><circle cx="98" cy="60" r="6" fill="currentColor" opacity=".35"/><circle cx="110" cy="95" r="6" fill="currentColor" opacity=".35"/><circle cx="135" cy="70" r="6" fill="currentColor" opacity=".35"/><circle cx="138" cy="110" r="6" fill="currentColor" opacity=".35"/></g><text x="120" y="148" text-anchor="middle" font-size="11" fill="currentColor">Patchy transmural GI-tract inflammation</text></svg>',
-    Hypothyroidism:
-      '<svg viewBox="0 0 240 160" class="diagram-svg" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><line x1="120" y1="30" x2="120" y2="80"/><path d="M100 70 Q 80 80 78 110 Q 78 122 95 122 Q 110 122 115 105 Z" fill="currentColor" opacity=".18"/><path d="M140 70 Q 160 80 162 110 Q 162 122 145 122 Q 130 122 125 105 Z" fill="currentColor" opacity=".18"/><path d="M100 70 Q 80 80 78 110 Q 78 122 95 122 Q 110 122 115 105 Z"/><path d="M140 70 Q 160 80 162 110 Q 162 122 145 122 Q 130 122 125 105 Z"/></g><text x="120" y="148" text-anchor="middle" font-size="11" fill="currentColor">Underactive butterfly-shaped thyroid</text></svg>',
+    "Systemic Lupus Erythematosus": [
+      '<svg viewBox="0 0 360 220" class="diagram-svg" aria-hidden="true">',
+      '<text x="180" y="14" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor" letter-spacing=".08em">SYSTEMS ATTACKED IN LUPUS</text>',
+      // body silhouette
+      '<g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">',
+        '<circle cx="180" cy="56" r="24"/>',
+        '<path d="M170 78 L170 90 L190 90 L190 78"/>',
+        '<path d="M140 96 Q180 86 220 96 L228 195 L132 195 Z"/>',
+        '<path d="M140 100 L92 150 L98 158 L142 122"/>',
+        '<path d="M220 100 L268 150 L262 158 L218 122"/>',
+      '</g>',
+      // butterfly malar rash
+      '<g fill="' + DIAG_RED + '" opacity=".55">',
+        '<ellipse cx="172" cy="58" rx="10" ry="6" transform="rotate(-12 172 58)"/>',
+        '<ellipse cx="188" cy="58" rx="10" ry="6" transform="rotate(12 188 58)"/>',
+        '<path d="M176 60 Q180 64 184 60" fill="none" stroke="' + DIAG_RED + '" stroke-width="1.2"/>',
+      '</g>',
+      // joint hot spots — wrists/knuckles
+      '<g fill="' + DIAG_ORANGE + '">',
+        '<circle cx="92" cy="152" r="3.2"/><circle cx="98" cy="156" r="2.5"/><circle cx="86" cy="158" r="2.5"/>',
+        '<circle cx="268" cy="152" r="3.2"/><circle cx="262" cy="156" r="2.5"/><circle cx="274" cy="158" r="2.5"/>',
+      '</g>',
+      // heart
+      '<path d="M168 122 C 162 118 158 124 162 130 C 167 138 178 142 180 144 C 182 142 193 138 198 130 C 202 124 198 118 192 122 C 187 126 183 128 180 126 C 177 128 173 126 168 122 Z" fill="' + DIAG_RED + '" opacity=".35" stroke="' + DIAG_RED + '" stroke-width="1"/>',
+      // kidneys
+      '<g fill="' + DIAG_ORANGE + '" opacity=".5" stroke="' + DIAG_ORANGE + '" stroke-width="1">',
+        '<path d="M156 168 C 150 168 148 178 152 184 C 156 188 162 186 164 180 C 160 176 160 172 156 168 Z"/>',
+        '<path d="M204 168 C 210 168 212 178 208 184 C 204 188 198 186 196 180 C 200 176 200 172 204 168 Z"/>',
+      '</g>',
+      // labels with leader lines
+      '<g fill="currentColor" font-size="10">',
+        '<text x="68" y="44">Malar rash</text>',
+        '<line x1="98" y1="46" x2="160" y2="56" stroke="currentColor" stroke-width=".7"/>',
+        '<text x="20" y="146">Joints</text>',
+        '<line x1="44" y1="148" x2="80" y2="152" stroke="currentColor" stroke-width=".7"/>',
+        '<text x="288" y="132">Heart</text>',
+        '<line x1="285" y1="134" x2="200" y2="132" stroke="currentColor" stroke-width=".7"/>',
+        '<text x="288" y="180">Kidneys</text>',
+        '<line x1="285" y1="178" x2="216" y2="178" stroke="currentColor" stroke-width=".7"/>',
+        '<text x="20" y="100">Lungs/heart</text>',
+        '<line x1="62" y1="102" x2="155" y2="115" stroke="currentColor" stroke-width=".7"/>',
+      '</g>',
+      '<text x="180" y="212" text-anchor="middle" font-size="9.5" fill="currentColor" opacity=".75">Autoimmune attack across skin, joints, kidneys &amp; more</text>',
+      '</svg>',
+    ].join(""),
+
+    "Rheumatoid Arthritis": [
+      '<svg viewBox="0 0 360 220" class="diagram-svg" aria-hidden="true">',
+      '<text x="180" y="14" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor" letter-spacing=".08em">SYMMETRIC SMALL-JOINT INFLAMMATION</text>',
+      // hand outline (left, anatomical)
+      '<g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round">',
+        '<path d="M68 196 L60 132 Q58 116 70 114 Q80 114 80 130 L82 92 Q82 76 92 76 Q102 76 102 92 L104 84 Q104 70 114 70 Q124 70 124 84 L126 90 Q126 78 136 78 Q146 78 146 90 L150 132 Q152 152 142 178 L138 196 Z"/>',
+      '</g>',
+      // right hand mirrored
+      '<g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" transform="translate(360 0) scale(-1 1)">',
+        '<path d="M68 196 L60 132 Q58 116 70 114 Q80 114 80 130 L82 92 Q82 76 92 76 Q102 76 102 92 L104 84 Q104 70 114 70 Q124 70 124 84 L126 90 Q126 78 136 78 Q146 78 146 90 L150 132 Q152 152 142 178 L138 196 Z"/>',
+      '</g>',
+      // swollen MCP/PIP joints on both hands (highlighted red)
+      '<g fill="' + DIAG_RED + '" opacity=".7" stroke="' + DIAG_RED + '" stroke-width="1">',
+        '<circle cx="75" cy="130" r="5"/><circle cx="91" cy="100" r="5.5"/><circle cx="113" cy="92" r="6"/><circle cx="135" cy="98" r="5.5"/>',
+        '<circle cx="91" cy="118" r="4"/><circle cx="113" cy="110" r="4"/><circle cx="135" cy="116" r="4"/>',
+      '</g>',
+      '<g fill="' + DIAG_RED + '" opacity=".7" stroke="' + DIAG_RED + '" stroke-width="1" transform="translate(360 0) scale(-1 1)">',
+        '<circle cx="75" cy="130" r="5"/><circle cx="91" cy="100" r="5.5"/><circle cx="113" cy="92" r="6"/><circle cx="135" cy="98" r="5.5"/>',
+        '<circle cx="91" cy="118" r="4"/><circle cx="113" cy="110" r="4"/><circle cx="135" cy="116" r="4"/>',
+      '</g>',
+      // arrows showing symmetry
+      '<path d="M160 132 Q180 122 200 132" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="3 3"/>',
+      '<text x="180" y="120" text-anchor="middle" font-size="10" fill="currentColor">symmetric</text>',
+      // labels
+      '<g fill="currentColor" font-size="10">',
+        '<text x="40" y="78">MCP joints</text>',
+        '<line x1="78" y1="82" x2="92" y2="92" stroke="currentColor" stroke-width=".7"/>',
+        '<text x="40" y="166">Wrist</text>',
+        '<line x1="66" y1="162" x2="75" y2="138" stroke="currentColor" stroke-width=".7"/>',
+        '<text x="270" y="78">PIP joints</text>',
+        '<line x1="272" y1="82" x2="247" y2="100" stroke="currentColor" stroke-width=".7"/>',
+      '</g>',
+      '<text x="180" y="212" text-anchor="middle" font-size="9.5" fill="currentColor" opacity=".75">Synovial inflammation of the small joints of both hands</text>',
+      '</svg>',
+    ].join(""),
+
+    "Type 2 Diabetes Mellitus": [
+      '<svg viewBox="0 0 360 220" class="diagram-svg" aria-hidden="true">',
+      '<text x="180" y="14" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor" letter-spacing=".08em">INSULIN RESISTANCE</text>',
+      // pancreas
+      '<g fill="none" stroke="currentColor" stroke-width="1.4">',
+        '<path d="M20 92 C 60 70 110 86 140 100 C 170 116 180 120 188 116" stroke-linecap="round"/>',
+        '<ellipse cx="32" cy="92" rx="14" ry="10" fill="currentColor" opacity=".15"/>',
+      '</g>',
+      '<text x="32" y="74" text-anchor="middle" font-size="9.5" fill="currentColor">pancreas</text>',
+      // insulin molecules
+      '<g fill="' + DIAG_GREEN + '">',
+        '<circle cx="148" cy="118" r="3.5"/><circle cx="162" cy="124" r="3.5"/><circle cx="176" cy="118" r="3.5"/><circle cx="188" cy="126" r="3.5"/>',
+      '</g>',
+      '<text x="168" y="106" text-anchor="middle" font-size="9.5" fill="' + DIAG_GREEN + '">insulin</text>',
+      // arrow to cell
+      '<path d="M195 122 L 232 132" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+      '<path d="M226 128 L 232 132 L 226 136" fill="none" stroke="currentColor" stroke-width="1.4"/>',
+      // muscle/fat cell with receptors (blocked)
+      '<g fill="none" stroke="currentColor" stroke-width="1.5">',
+        '<rect x="234" y="100" width="110" height="80" rx="12"/>',
+      '</g>',
+      // receptors on cell wall
+      '<g fill="' + DIAG_RED + '" opacity=".7" stroke="' + DIAG_RED + '" stroke-width="1">',
+        '<circle cx="244" cy="116" r="4"/>',
+        '<circle cx="244" cy="140" r="4"/>',
+        '<circle cx="244" cy="164" r="4"/>',
+      '</g>',
+      // crossed-out arrows showing resistance
+      '<g stroke="' + DIAG_RED + '" stroke-width="1.5" fill="none">',
+        '<line x1="252" y1="116" x2="268" y2="116" stroke-linecap="round"/>',
+        '<line x1="262" y1="110" x2="268" y2="116" stroke-linecap="round"/>',
+        '<line x1="262" y1="122" x2="268" y2="116" stroke-linecap="round"/>',
+        '<line x1="276" y1="110" x2="284" y2="122"/>',
+        '<line x1="284" y1="110" x2="276" y2="122"/>',
+      '</g>',
+      // glucose floating outside
+      '<g fill="' + DIAG_ORANGE + '">',
+        '<circle cx="206" cy="180" r="4"/><circle cx="220" cy="190" r="4"/><circle cx="232" cy="180" r="4"/><circle cx="246" cy="190" r="4"/><circle cx="258" cy="180" r="4"/><circle cx="270" cy="190" r="4"/><circle cx="284" cy="180" r="4"/>',
+      '</g>',
+      '<text x="245" y="208" text-anchor="middle" font-size="10" fill="' + DIAG_ORANGE + '">glucose builds up in the blood</text>',
+      // cell label
+      '<text x="320" y="146" text-anchor="middle" font-size="10" fill="currentColor">muscle / fat cell</text>',
+      '</svg>',
+    ].join(""),
+
+    "Type 1 Diabetes Mellitus": [
+      '<svg viewBox="0 0 360 220" class="diagram-svg" aria-hidden="true">',
+      '<text x="180" y="14" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor" letter-spacing=".08em">AUTOIMMUNE BETA-CELL DESTRUCTION</text>',
+      // pancreas
+      '<g fill="none" stroke="currentColor" stroke-width="1.4">',
+        '<path d="M30 130 C 70 100 130 110 180 120 C 240 130 280 130 320 120" stroke-linecap="round"/>',
+        '<path d="M30 150 C 70 130 130 130 180 138 C 240 146 280 148 320 138" stroke-linecap="round"/>',
+      '</g>',
+      '<text x="60" y="100" font-size="9.5" fill="currentColor">pancreas</text>',
+      // zoom box highlighting islet
+      '<g fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="3 3">',
+        '<line x1="180" y1="130" x2="170" y2="170"/>',
+        '<line x1="195" y1="130" x2="270" y2="170"/>',
+        '<rect x="170" y="170" width="100" height="40" rx="6"/>',
+      '</g>',
+      '<text x="220" y="166" text-anchor="middle" font-size="9" fill="currentColor">islet of Langerhans (zoom)</text>',
+      // beta cells inside islet — some destroyed
+      '<g>',
+        '<circle cx="184" cy="190" r="6" fill="' + DIAG_GREEN + '" opacity=".25" stroke="' + DIAG_GREEN + '" stroke-width="1"/>',
+        '<circle cx="200" cy="190" r="6" fill="' + DIAG_RED + '" opacity=".25" stroke="' + DIAG_RED + '" stroke-width="1"/>',
+        '<line x1="195" y1="185" x2="205" y2="195" stroke="' + DIAG_RED + '" stroke-width="1.5"/>',
+        '<line x1="205" y1="185" x2="195" y2="195" stroke="' + DIAG_RED + '" stroke-width="1.5"/>',
+        '<circle cx="216" cy="190" r="6" fill="' + DIAG_RED + '" opacity=".25" stroke="' + DIAG_RED + '" stroke-width="1"/>',
+        '<line x1="211" y1="185" x2="221" y2="195" stroke="' + DIAG_RED + '" stroke-width="1.5"/>',
+        '<line x1="221" y1="185" x2="211" y2="195" stroke="' + DIAG_RED + '" stroke-width="1.5"/>',
+        '<circle cx="232" cy="190" r="6" fill="' + DIAG_RED + '" opacity=".25" stroke="' + DIAG_RED + '" stroke-width="1"/>',
+        '<line x1="227" y1="185" x2="237" y2="195" stroke="' + DIAG_RED + '" stroke-width="1.5"/>',
+        '<line x1="237" y1="185" x2="227" y2="195" stroke="' + DIAG_RED + '" stroke-width="1.5"/>',
+        '<circle cx="248" cy="190" r="6" fill="' + DIAG_GREEN + '" opacity=".25" stroke="' + DIAG_GREEN + '" stroke-width="1"/>',
+      '</g>',
+      // T-cell attacker
+      '<g fill="none" stroke="' + DIAG_RED + '" stroke-width="1.4">',
+        '<circle cx="290" cy="60" r="14" fill="' + DIAG_RED + '" opacity=".15"/>',
+        '<circle cx="285" cy="58" r="2.5" fill="' + DIAG_RED + '"/>',
+        '<circle cx="295" cy="58" r="2.5" fill="' + DIAG_RED + '"/>',
+        '<path d="M283 65 Q 290 70 297 65"/>',
+        '<path d="M290 75 L 240 130" stroke-dasharray="3 3"/>',
+        '<path d="M246 124 L 240 130 L 246 132" fill="none"/>',
+      '</g>',
+      '<text x="290" y="40" text-anchor="middle" font-size="9.5" fill="' + DIAG_RED + '">T-cell attack</text>',
+      // No insulin output
+      '<g>',
+        '<line x1="40" y1="180" x2="120" y2="180" stroke="currentColor" stroke-width="1.4"/>',
+        '<line x1="60" y1="174" x2="60" y2="186" stroke="' + DIAG_RED + '" stroke-width="2"/>',
+        '<line x1="100" y1="174" x2="100" y2="186" stroke="' + DIAG_RED + '" stroke-width="2"/>',
+        '<text x="80" y="200" text-anchor="middle" font-size="10" fill="' + DIAG_RED + '">no insulin</text>',
+      '</g>',
+      '</svg>',
+    ].join(""),
+
+    Asthma: [
+      '<svg viewBox="0 0 360 220" class="diagram-svg" aria-hidden="true">',
+      '<text x="180" y="14" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor" letter-spacing=".08em">AIRWAY DURING AN ASTHMA ATTACK</text>',
+      // normal airway cross section
+      '<g>',
+        '<circle cx="90" cy="100" r="48" fill="none" stroke="currentColor" stroke-width="1.5"/>',
+        '<circle cx="90" cy="100" r="34" fill="none" stroke="currentColor" stroke-width="1"/>',
+        '<circle cx="90" cy="100" r="30" fill="' + DIAG_GREEN + '" opacity=".1"/>',
+        '<circle cx="90" cy="100" r="30" fill="none" stroke="' + DIAG_GREEN + '" stroke-width="1.3" stroke-dasharray="2 3"/>',
+      '</g>',
+      '<text x="90" y="172" text-anchor="middle" font-size="11" fill="currentColor" font-weight="600">normal</text>',
+      '<text x="90" y="186" text-anchor="middle" font-size="9" fill="currentColor" opacity=".7">open lumen</text>',
+      // inflamed airway
+      '<g>',
+        '<circle cx="270" cy="100" r="48" fill="none" stroke="currentColor" stroke-width="1.5"/>',
+        // thickened smooth muscle (red)
+        '<circle cx="270" cy="100" r="42" fill="' + DIAG_RED + '" opacity=".25"/>',
+        // edema
+        '<circle cx="270" cy="100" r="30" fill="' + DIAG_ORANGE + '" opacity=".4"/>',
+        // mucus blob in middle
+        '<ellipse cx="270" cy="100" rx="12" ry="9" fill="' + DIAG_ORANGE + '" opacity=".7"/>',
+        '<circle cx="266" cy="100" r="3" fill="' + DIAG_ORANGE + '"/>',
+        '<circle cx="276" cy="98" r="2.5" fill="' + DIAG_ORANGE + '"/>',
+      '</g>',
+      '<text x="270" y="172" text-anchor="middle" font-size="11" fill="' + DIAG_RED + '" font-weight="600">inflamed</text>',
+      '<text x="270" y="186" text-anchor="middle" font-size="9" fill="currentColor" opacity=".7">muscle constricts · mucus · edema</text>',
+      // arrow between
+      '<g stroke="currentColor" stroke-width="1.4" fill="none">',
+        '<path d="M150 100 L 210 100" stroke-linecap="round"/>',
+        '<path d="M204 96 L 210 100 L 204 104"/>',
+      '</g>',
+      '<text x="180" y="92" text-anchor="middle" font-size="9.5" fill="currentColor">trigger</text>',
+      // mini labels
+      '<line x1="312" y1="68" x2="296" y2="78" stroke="currentColor" stroke-width=".7"/>',
+      '<text x="316" y="68" font-size="9" fill="currentColor">smooth muscle</text>',
+      '<line x1="316" y1="118" x2="290" y2="112" stroke="currentColor" stroke-width=".7"/>',
+      '<text x="320" y="120" font-size="9" fill="currentColor">edema</text>',
+      '<line x1="316" y1="140" x2="282" y2="106" stroke="currentColor" stroke-width=".7"/>',
+      '<text x="320" y="142" font-size="9" fill="currentColor">mucus</text>',
+      '</svg>',
+    ].join(""),
+
+    "Chronic Obstructive Pulmonary Disease": [
+      '<svg viewBox="0 0 360 220" class="diagram-svg" aria-hidden="true">',
+      '<text x="180" y="14" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor" letter-spacing=".08em">DAMAGED ALVEOLI IN COPD</text>',
+      // lung silhouette
+      '<g fill="none" stroke="currentColor" stroke-width="1.5">',
+        '<path d="M100 30 V 70"/>',
+        '<path d="M100 50 Q 70 60 60 90 Q 50 130 80 140 Q 95 132 100 100"/>',
+        '<path d="M100 50 Q 130 60 140 90 Q 150 130 120 140 Q 105 132 100 100"/>',
+        // trachea bifurcation
+        '<path d="M96 50 L 92 78"/>',
+        '<path d="M104 50 L 108 78"/>',
+      '</g>',
+      // normal alveoli zoom
+      '<g>',
+        '<rect x="180" y="34" width="80" height="64" rx="6" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="3 3"/>',
+        '<text x="220" y="30" text-anchor="middle" font-size="9" fill="currentColor">normal alveoli</text>',
+        '<g fill="' + DIAG_GREEN + '" opacity=".4" stroke="' + DIAG_GREEN + '" stroke-width="0.8">',
+          '<circle cx="194" cy="50" r="6"/><circle cx="208" cy="48" r="6"/><circle cx="222" cy="52" r="6"/><circle cx="236" cy="50" r="6"/><circle cx="250" cy="48" r="6"/>',
+          '<circle cx="200" cy="66" r="6"/><circle cx="216" cy="64" r="6"/><circle cx="230" cy="68" r="6"/><circle cx="246" cy="66" r="6"/>',
+          '<circle cx="190" cy="84" r="6"/><circle cx="206" cy="82" r="6"/><circle cx="222" cy="86" r="6"/><circle cx="238" cy="84" r="6"/><circle cx="252" cy="84" r="6"/>',
+        '</g>',
+      '</g>',
+      // emphysematous alveoli zoom (enlarged + damaged)
+      '<g>',
+        '<rect x="180" y="118" width="80" height="64" rx="6" fill="none" stroke="' + DIAG_RED + '" stroke-width="1" stroke-dasharray="3 3"/>',
+        '<text x="220" y="112" text-anchor="middle" font-size="9" fill="' + DIAG_RED + '">emphysema</text>',
+        '<g fill="' + DIAG_ORANGE + '" opacity=".35" stroke="' + DIAG_ORANGE + '" stroke-width="1">',
+          '<ellipse cx="200" cy="140" rx="14" ry="11"/>',
+          '<ellipse cx="232" cy="138" rx="16" ry="12"/>',
+          '<ellipse cx="208" cy="166" rx="13" ry="9"/>',
+          '<ellipse cx="240" cy="168" rx="14" ry="10"/>',
+        '</g>',
+      '</g>',
+      // arrows from lung to zooms
+      '<path d="M120 70 L 178 60" stroke="currentColor" stroke-width=".7" stroke-dasharray="2 2" fill="none"/>',
+      '<path d="M120 110 L 178 150" stroke="currentColor" stroke-width=".7" stroke-dasharray="2 2" fill="none"/>',
+      // smoke indication
+      '<g fill="currentColor" opacity=".5">',
+        '<text x="30" y="200" font-size="9">smoking</text>',
+        '<path d="M64 195 Q 70 188 76 195 Q 82 188 88 195 Q 94 188 100 195" stroke="currentColor" stroke-width="1" fill="none"/>',
+      '</g>',
+      '<text x="280" y="206" text-anchor="middle" font-size="9.5" fill="currentColor" opacity=".75">walls break down · air trapped · breathlessness</text>',
+      '</svg>',
+    ].join(""),
+
+    Hypertension: [
+      '<svg viewBox="0 0 360 220" class="diagram-svg" aria-hidden="true">',
+      '<text x="180" y="14" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor" letter-spacing=".08em">HIGH BLOOD-PRESSURE READING</text>',
+      // BP cuff arm
+      '<g fill="none" stroke="currentColor" stroke-width="1.5">',
+        '<path d="M30 100 L 30 160 L 110 160 L 110 100"/>',
+        '<rect x="20" y="116" width="100" height="32" rx="4" fill="currentColor" opacity=".08"/>',
+        // tube
+        '<path d="M120 132 Q 140 132 150 120"/>',
+        // gauge
+        '<circle cx="170" cy="100" r="34"/>',
+      '</g>',
+      // gauge numbers
+      '<g fill="currentColor" font-size="8">',
+        '<text x="148" y="86" text-anchor="middle">120</text>',
+        '<text x="194" y="86" text-anchor="middle">160</text>',
+        '<text x="170" y="76" text-anchor="middle">140</text>',
+      '</g>',
+      // needle pointing high
+      '<line x1="170" y1="100" x2="194" y2="82" stroke="' + DIAG_RED + '" stroke-width="2.5" stroke-linecap="round"/>',
+      '<circle cx="170" cy="100" r="3" fill="' + DIAG_RED + '"/>',
+      // BP digital readout
+      '<g fill="none" stroke="currentColor" stroke-width="1.4">',
+        '<rect x="226" y="80" width="116" height="56" rx="6"/>',
+      '</g>',
+      '<text x="284" y="112" text-anchor="middle" font-size="26" fill="' + DIAG_RED + '" font-weight="700">158</text>',
+      '<text x="284" y="130" text-anchor="middle" font-size="14" fill="' + DIAG_RED + '">/ 96</text>',
+      '<text x="284" y="148" text-anchor="middle" font-size="9" fill="currentColor">mmHg</text>',
+      // affected organs
+      '<g fill="' + DIAG_ORANGE + '" opacity=".5" stroke="' + DIAG_ORANGE + '" stroke-width="1">',
+        // heart
+        '<path d="M70 188 C 62 182 58 192 64 200 C 70 208 80 210 82 210 C 84 210 94 208 100 200 C 106 192 102 182 94 188 C 88 192 84 192 82 190 C 80 192 76 192 70 188 Z"/>',
+        // kidney
+        '<path d="M140 185 C 132 187 130 200 138 208 C 144 212 154 210 152 200 C 150 192 148 188 140 185 Z"/>',
+        // brain bubble
+        '<circle cx="210" cy="195" r="14"/>',
+        // eye
+        '<ellipse cx="270" cy="195" rx="14" ry="8"/>',
+        '<circle cx="270" cy="195" r="4" fill="currentColor"/>',
+      '</g>',
+      '<g fill="currentColor" font-size="8" text-anchor="middle">',
+        '<text x="82" y="216">heart</text>',
+        '<text x="145" y="216">kidneys</text>',
+        '<text x="210" y="216">brain</text>',
+        '<text x="270" y="216">eyes</text>',
+      '</g>',
+      '</svg>',
+    ].join(""),
+
+    "Heart Failure": [
+      '<svg viewBox="0 0 360 220" class="diagram-svg" aria-hidden="true">',
+      '<text x="180" y="14" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor" letter-spacing=".08em">WEAKENED PUMP &amp; FLUID BACKUP</text>',
+      // heart outline with chambers
+      '<g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">',
+        '<path d="M180 188 C 100 160 110 60 160 50 C 175 48 178 60 180 70 C 182 60 185 48 200 50 C 250 60 260 160 180 188 Z"/>',
+        // chamber septum
+        '<path d="M180 70 L 180 175"/>',
+        // valve hint
+        '<path d="M150 110 Q 180 122 210 110"/>',
+      '</g>',
+      // dilated/weak left ventricle highlight
+      '<path d="M180 70 C 230 80 240 150 180 178 L 180 75 Z" fill="' + DIAG_RED + '" opacity=".18"/>',
+      // weak pump arrow (small)
+      '<g stroke="' + DIAG_RED + '" stroke-width="2" fill="none" stroke-linecap="round">',
+        '<line x1="200" y1="146" x2="218" y2="146"/>',
+        '<line x1="214" y1="142" x2="218" y2="146"/>',
+        '<line x1="214" y1="150" x2="218" y2="146"/>',
+      '</g>',
+      '<text x="232" y="150" font-size="9.5" fill="' + DIAG_RED + '">weak output</text>',
+      // lungs with fluid (pulmonary edema)
+      '<g fill="' + DIAG_ORANGE + '" opacity=".35" stroke="' + DIAG_ORANGE + '" stroke-width="1">',
+        '<path d="M68 60 Q 60 80 70 110 Q 80 120 86 100 Q 90 80 88 60 Z"/>',
+        '<path d="M292 60 Q 300 80 290 110 Q 280 120 274 100 Q 270 80 272 60 Z"/>',
+      '</g>',
+      '<g fill="' + DIAG_ORANGE + '">',
+        '<circle cx="76" cy="82" r="2"/><circle cx="84" cy="92" r="2"/><circle cx="74" cy="98" r="2"/>',
+        '<circle cx="280" cy="82" r="2"/><circle cx="288" cy="92" r="2"/><circle cx="284" cy="100" r="2"/>',
+      '</g>',
+      '<text x="78" y="50" text-anchor="middle" font-size="9" fill="' + DIAG_ORANGE + '">fluid in lungs</text>',
+      '<text x="282" y="50" text-anchor="middle" font-size="9" fill="' + DIAG_ORANGE + '">fluid in lungs</text>',
+      // backup arrows from heart to lungs
+      '<g stroke="' + DIAG_ORANGE + '" stroke-width="1.4" fill="none" stroke-linecap="round">',
+        '<path d="M160 90 Q 130 80 92 78"/>',
+        '<path d="M98 76 L 92 78 L 96 84"/>',
+        '<path d="M200 90 Q 230 80 268 78"/>',
+        '<path d="M262 76 L 268 78 L 264 84"/>',
+      '</g>',
+      // ankle swelling indicator
+      '<g fill="' + DIAG_ORANGE + '" opacity=".5" stroke="' + DIAG_ORANGE + '" stroke-width="1">',
+        '<ellipse cx="100" cy="198" rx="22" ry="8"/>',
+        '<ellipse cx="260" cy="198" rx="22" ry="8"/>',
+      '</g>',
+      '<text x="100" y="216" text-anchor="middle" font-size="8.5" fill="currentColor">ankle edema</text>',
+      '<text x="260" y="216" text-anchor="middle" font-size="8.5" fill="currentColor">ankle edema</text>',
+      '</svg>',
+    ].join(""),
+
+    Migraine: [
+      '<svg viewBox="0 0 360 220" class="diagram-svg" aria-hidden="true">',
+      '<text x="180" y="14" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor" letter-spacing=".08em">UNILATERAL PAIN &amp; AURA</text>',
+      // head profile (side view)
+      '<g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">',
+        '<path d="M260 90 C 260 50 200 36 170 50 C 130 65 100 90 100 130 C 100 160 120 170 130 175 L 130 195 L 160 195 L 162 178 L 200 178 L 200 165 C 240 160 260 130 260 90 Z"/>',
+        // ear
+        '<ellipse cx="180" cy="125" rx="6" ry="10"/>',
+        // eye
+        '<ellipse cx="135" cy="100" rx="6" ry="3.5" fill="currentColor" opacity=".15"/>',
+        '<circle cx="135" cy="100" r="2" fill="currentColor"/>',
+        // mouth
+        '<path d="M120 145 Q 125 150 130 144"/>',
+      '</g>',
+      // brain hemisphere shading (one side affected)
+      '<path d="M165 75 C 195 70 220 80 230 110 C 232 130 215 150 195 150 C 175 150 165 130 165 75 Z" fill="' + DIAG_RED + '" opacity=".22"/>',
+      '<text x="200" y="100" text-anchor="middle" font-size="9" fill="' + DIAG_RED + '">pain</text>',
+      // throbbing waves emanating
+      '<g fill="none" stroke="' + DIAG_RED + '" stroke-width="1.4" opacity=".7">',
+        '<path d="M256 76 Q 286 70 296 90"/>',
+        '<path d="M252 90 Q 290 90 304 116"/>',
+        '<path d="M256 116 Q 286 130 296 136"/>',
+      '</g>',
+      // aura zigzag in visual field
+      '<g stroke="' + DIAG_ORANGE + '" stroke-width="2" fill="none" stroke-linecap="round">',
+        '<polyline points="22,80 36,72 30,90 44,82 38,100 52,92 46,110 60,102"/>',
+        '<polyline points="22,142 36,134 30,152 44,144 38,162 52,154 46,172 60,164" opacity=".75"/>',
+      '</g>',
+      '<text x="42" y="60" font-size="9.5" text-anchor="middle" fill="' + DIAG_ORANGE + '">aura</text>',
+      // trigeminal nerve hint
+      '<path d="M165 110 Q 145 120 120 105" fill="none" stroke="' + DIAG_RED + '" stroke-width="1.6" stroke-dasharray="2 2"/>',
+      '<text x="78" y="190" font-size="9" fill="currentColor">trigeminal pathway · CGRP release</text>',
+      '</svg>',
+    ].join(""),
+
+    "Multiple Sclerosis": [
+      '<svg viewBox="0 0 360 220" class="diagram-svg" aria-hidden="true">',
+      '<text x="180" y="14" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor" letter-spacing=".08em">DEMYELINATION OF A NEURON</text>',
+      // cell body (soma)
+      '<g fill="none" stroke="currentColor" stroke-width="1.5">',
+        '<circle cx="50" cy="110" r="22" fill="currentColor" opacity=".1"/>',
+        // dendrites
+        '<path d="M30 110 L 18 96 M 30 110 L 14 110 M 30 110 L 18 126"/>',
+        '<path d="M50 88 L 38 74 M 50 88 L 52 70"/>',
+        '<path d="M50 132 L 38 146 M 50 132 L 52 152"/>',
+        // nucleus
+        '<circle cx="50" cy="110" r="6" fill="currentColor"/>',
+      '</g>',
+      // axon (long line)
+      '<line x1="72" y1="110" x2="332" y2="110" stroke="currentColor" stroke-width="2.5"/>',
+      // myelin sheaths (segments) — some intact, some damaged
+      '<g>',
+        '<rect x="84" y="96" width="32" height="28" rx="14" fill="' + DIAG_GREEN + '" opacity=".35" stroke="' + DIAG_GREEN + '" stroke-width="1"/>',
+        '<rect x="124" y="96" width="32" height="28" rx="14" fill="' + DIAG_RED + '" opacity=".25" stroke="' + DIAG_RED + '" stroke-width="1.4" stroke-dasharray="3 2"/>',
+        '<rect x="164" y="96" width="32" height="28" rx="14" fill="' + DIAG_GREEN + '" opacity=".35" stroke="' + DIAG_GREEN + '" stroke-width="1"/>',
+        '<rect x="204" y="96" width="32" height="28" rx="14" fill="' + DIAG_RED + '" opacity=".25" stroke="' + DIAG_RED + '" stroke-width="1.4" stroke-dasharray="3 2"/>',
+        '<rect x="244" y="96" width="32" height="28" rx="14" fill="' + DIAG_GREEN + '" opacity=".35" stroke="' + DIAG_GREEN + '" stroke-width="1"/>',
+        '<rect x="284" y="96" width="32" height="28" rx="14" fill="' + DIAG_RED + '" opacity=".25" stroke="' + DIAG_RED + '" stroke-width="1.4" stroke-dasharray="3 2"/>',
+      '</g>',
+      // axon terminal
+      '<g fill="none" stroke="currentColor" stroke-width="1.4">',
+        '<path d="M332 110 L 344 100 M 332 110 L 348 110 M 332 110 L 344 120"/>',
+      '</g>',
+      // T-cell attacker
+      '<g stroke="' + DIAG_RED + '" stroke-width="1.4" fill="none">',
+        '<circle cx="140" cy="50" r="12" fill="' + DIAG_RED + '" opacity=".15"/>',
+        '<circle cx="136" cy="48" r="2" fill="' + DIAG_RED + '"/>',
+        '<circle cx="144" cy="48" r="2" fill="' + DIAG_RED + '"/>',
+        '<path d="M140 62 L 140 92" stroke-dasharray="3 3"/>',
+        '<path d="M136 88 L 140 94 L 144 88"/>',
+      '</g>',
+      '<text x="140" y="34" text-anchor="middle" font-size="9.5" fill="' + DIAG_RED + '">immune attack</text>',
+      // labels
+      '<text x="50" y="160" text-anchor="middle" font-size="9" fill="currentColor">cell body</text>',
+      '<text x="100" y="146" text-anchor="middle" font-size="9" fill="' + DIAG_GREEN + '">myelin</text>',
+      '<line x1="100" y1="142" x2="100" y2="124" stroke="' + DIAG_GREEN + '" stroke-width=".7"/>',
+      '<text x="220" y="160" text-anchor="middle" font-size="9" fill="' + DIAG_RED + '">demyelinated plaques (signals slow/block)</text>',
+      '<text x="340" y="146" text-anchor="middle" font-size="9" fill="currentColor">terminal</text>',
+      '</svg>',
+    ].join(""),
+
+    "Crohn's Disease": [
+      '<svg viewBox="0 0 360 220" class="diagram-svg" aria-hidden="true">',
+      '<text x="180" y="14" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor" letter-spacing=".08em">PATCHY INFLAMMATION IN THE GI TRACT</text>',
+      // GI tract (stomach + small bowel + colon)
+      '<g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">',
+        // esophagus + stomach
+        '<path d="M60 36 L 60 60 Q 60 70 75 70 L 110 70 Q 138 70 138 96 Q 138 116 110 116 L 80 116 Q 70 116 70 100"/>',
+        // small bowel (squiggly loops)
+        '<path d="M100 120 Q 130 130 130 150 Q 130 168 110 168 Q 90 168 90 150 Q 90 132 120 130"/>',
+        '<path d="M138 132 Q 168 142 168 160 Q 168 178 148 178 Q 128 178 128 160"/>',
+        // colon — frame around the bowel
+        '<path d="M52 86 L 52 174 Q 52 188 66 188 L 254 188 Q 268 188 268 174 L 268 78 Q 268 64 254 64 L 220 64"/>',
+        // rectum
+        '<path d="M150 188 L 150 204"/>',
+      '</g>',
+      // skip lesions (red patches in different segments)
+      '<g fill="' + DIAG_RED + '" opacity=".55" stroke="' + DIAG_RED + '" stroke-width="1">',
+        '<ellipse cx="118" cy="80" rx="10" ry="5"/>',
+        '<ellipse cx="148" cy="148" rx="9" ry="5" transform="rotate(20 148 148)"/>',
+        '<ellipse cx="60" cy="120" rx="6" ry="9"/>',
+        '<ellipse cx="220" cy="76" rx="11" ry="5"/>',
+        '<ellipse cx="262" cy="160" rx="6" ry="11"/>',
+        '<ellipse cx="180" cy="190" rx="14" ry="5"/>',
+      '</g>',
+      // cross-section detail
+      '<g>',
+        '<rect x="280" y="80" width="68" height="110" rx="6" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="3 3"/>',
+        '<text x="314" y="74" text-anchor="middle" font-size="9" fill="currentColor">cross-section</text>',
+        // intestinal wall layers
+        '<rect x="288" y="90" width="52" height="14" fill="currentColor" opacity=".15" stroke="currentColor" stroke-width=".8"/>',
+        '<rect x="288" y="108" width="52" height="14" fill="' + DIAG_RED + '" opacity=".4" stroke="' + DIAG_RED + '" stroke-width=".8"/>',
+        '<rect x="288" y="126" width="52" height="14" fill="' + DIAG_RED + '" opacity=".4" stroke="' + DIAG_RED + '" stroke-width=".8"/>',
+        '<rect x="288" y="144" width="52" height="14" fill="' + DIAG_RED + '" opacity=".4" stroke="' + DIAG_RED + '" stroke-width=".8"/>',
+        '<rect x="288" y="162" width="52" height="14" fill="' + DIAG_RED + '" opacity=".4" stroke="' + DIAG_RED + '" stroke-width=".8"/>',
+        '<text x="314" y="186" text-anchor="middle" font-size="8.5" fill="' + DIAG_RED + '">transmural</text>',
+      '</g>',
+      // labels
+      '<text x="80" y="46" font-size="9" fill="currentColor">stomach</text>',
+      '<text x="20" y="160" font-size="9" fill="currentColor">colon</text>',
+      '<text x="120" y="124" font-size="9" fill="currentColor">small bowel</text>',
+      '</svg>',
+    ].join(""),
+
+    Hypothyroidism: [
+      '<svg viewBox="0 0 360 220" class="diagram-svg" aria-hidden="true">',
+      '<text x="180" y="14" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor" letter-spacing=".08em">HPT AXIS &amp; LOW THYROID OUTPUT</text>',
+      // brain
+      '<g fill="none" stroke="currentColor" stroke-width="1.5">',
+        '<path d="M40 56 C 40 30 96 28 100 50 C 116 36 144 38 142 60 C 144 80 124 82 116 78 C 110 92 84 92 72 82 C 56 88 40 78 40 56 Z" fill="currentColor" opacity=".06"/>',
+        // pituitary gland
+        '<circle cx="84" cy="92" r="6" fill="' + DIAG_ORANGE + '" stroke="' + DIAG_ORANGE + '"/>',
+      '</g>',
+      '<text x="88" y="40" text-anchor="middle" font-size="9" fill="currentColor">brain</text>',
+      '<text x="100" y="106" font-size="8.5" fill="' + DIAG_ORANGE + '">pituitary</text>',
+      // TSH arrow
+      '<g stroke="currentColor" stroke-width="1.5" fill="none">',
+        '<path d="M92 102 Q 130 130 158 142"/>',
+        '<path d="M152 138 L 158 142 L 152 146"/>',
+      '</g>',
+      '<text x="118" y="124" font-size="9.5" fill="currentColor">TSH ↑ (compensation)</text>',
+      // thyroid — butterfly shape, faded to show underactive
+      '<g>',
+        '<path d="M148 144 Q 130 152 128 178 Q 128 192 146 192 Q 162 192 168 174 Z" fill="' + DIAG_ORANGE + '" opacity=".25" stroke="' + DIAG_ORANGE + '" stroke-width="1.4"/>',
+        '<path d="M188 144 Q 206 152 208 178 Q 208 192 190 192 Q 174 192 168 174 Z" fill="' + DIAG_ORANGE + '" opacity=".25" stroke="' + DIAG_ORANGE + '" stroke-width="1.4"/>',
+        // isthmus
+        '<rect x="160" y="160" width="16" height="10" fill="' + DIAG_ORANGE + '" opacity=".25" stroke="' + DIAG_ORANGE + '" stroke-width="1.2"/>',
+      '</g>',
+      '<text x="168" y="210" text-anchor="middle" font-size="9.5" fill="currentColor">underactive thyroid (Hashimoto)</text>',
+      // T4/T3 hormones output (small dotted arrows)
+      '<g stroke="' + DIAG_RED + '" stroke-width="1.4" stroke-linecap="round" fill="none">',
+        '<path d="M230 168 L 290 168" stroke-dasharray="2 4"/>',
+        '<path d="M284 164 L 290 168 L 284 172"/>',
+      '</g>',
+      '<text x="260" y="160" text-anchor="middle" font-size="9.5" fill="' + DIAG_RED + '">T4 / T3 ↓</text>',
+      // body cell receiving (small body silhouette)
+      '<g fill="none" stroke="currentColor" stroke-width="1.4">',
+        '<circle cx="316" cy="148" r="10"/>',
+        '<path d="M308 158 L 304 196 L 328 196 L 324 158"/>',
+      '</g>',
+      '<text x="316" y="216" text-anchor="middle" font-size="8.5" fill="currentColor" opacity=".8">whole-body slowdown</text>',
+      // immune attack indicator (Hashimoto's)
+      '<g stroke="' + DIAG_RED + '" stroke-width="1" fill="none">',
+        '<line x1="146" y1="158" x2="156" y2="168" stroke-width="1.6"/>',
+        '<line x1="156" y1="158" x2="146" y2="168" stroke-width="1.6"/>',
+        '<line x1="186" y1="158" x2="196" y2="168" stroke-width="1.6"/>',
+        '<line x1="196" y1="158" x2="186" y2="168" stroke-width="1.6"/>',
+      '</g>',
+      '</svg>',
+    ].join(""),
   };
   function diagramSection(condition) {
     var svg = CONDITION_DIAGRAMS[condition.name];
@@ -1956,12 +2466,16 @@
     var answers = CONDITION_FAQ[condition.name];
     if (!answers) return "";
     var short = CONDITION_SHORT[condition.name] || condition.name;
+    var sex = STORE.get("sex", null);
     var chips = "";
     var count = 0;
     for (var i = 0; i < FAQ_TOPICS.length && count < 4; i++) {
       var topic = FAQ_TOPICS[i];
       if (topic.id === currentTopicId) continue;
       if (!answers[topic.id]) continue;
+      /* Don't surface the pregnancy chip to male profiles, but still
+         answer the question if they explicitly ask. */
+      if (topic.id === "pregnancy" && sex === "male") continue;
       chips +=
         '<button class="suggest-chip" type="button">' +
         escapeHtml(topic.q(short)) +
@@ -2390,6 +2904,38 @@
     { id: "p19", name: "Dr. Grace Park, MD", specialty: "Gastroenterology", city: "Chicago, IL", distanceMi: 22.0, telehealth: false, acceptingNew: true, affiliation: "Illinois Digestive Health", rating: 4.7, address: "1725 W Harrison St, Chicago, IL 60612", phone: "(312) 555-0179", lat: 41.8743, lng: -87.6685 },
     { id: "p20", name: "Dr. Henry Cole, MD", specialty: "Gastroenterology", city: "New York, NY", distanceMi: 7.4, telehealth: true, acceptingNew: true, affiliation: "Midtown GI & IBD Center", rating: 4.8, address: "16 E 60th St, New York, NY 10022", phone: "(212) 555-0331", lat: 40.7638, lng: -73.9711 },
     { id: "p21", name: "Dr. Laura Simmons, MD", specialty: "Gastroenterology", city: "Boston, MA", distanceMi: 6.3, telehealth: true, acceptingNew: true, affiliation: "Boston Digestive & IBD Associates", rating: 4.7, address: "800 Washington St, Boston, MA 02111", phone: "(617) 555-0342", lat: 42.3493, lng: -71.0635 },
+
+    /* Canada */
+    { id: "p22", name: "Dr. Aiden Cho, MD", specialty: "Rheumatology", city: "Vancouver, BC", distanceMi: 2.7, telehealth: true, acceptingNew: true, affiliation: "BC Rheumatic Disease Clinic", rating: 4.8, address: "2775 Laurel St, Vancouver, BC V5Z 1M9", phone: "(604) 555-0118", lat: 49.2628, lng: -123.1241 },
+    { id: "p23", name: "Dr. Maya Bhattacharya, MD", specialty: "Endocrinology", city: "Vancouver, BC", distanceMi: 3.4, telehealth: true, acceptingNew: true, affiliation: "Vancouver Endocrine & Diabetes Centre", rating: 4.7, address: "1190 Hornby St, Vancouver, BC V6Z 2K5", phone: "(604) 555-0129", lat: 49.2783, lng: -123.1228 },
+    { id: "p24", name: "Dr. Jacques Tremblay, MD", specialty: "Neurology", city: "Vancouver, BC", distanceMi: 4.1, telehealth: true, acceptingNew: true, affiliation: "Pacific Neuroscience Associates", rating: 4.8, address: "899 W 12th Ave, Vancouver, BC V5Z 1M9", phone: "(604) 555-0231", lat: 49.2604, lng: -123.1262 },
+    { id: "p25", name: "Dr. Priya Sandhu, MD", specialty: "Pulmonology", city: "Vancouver, BC", distanceMi: 6.5, telehealth: false, acceptingNew: true, affiliation: "West Coast Respiratory Group", rating: 4.6, address: "4480 Oak St, Vancouver, BC V6H 3V4", phone: "(604) 555-0342", lat: 49.2454, lng: -123.1284 },
+    { id: "p26", name: "Dr. Hannah O'Connor, MD", specialty: "Cardiology", city: "Vancouver, BC", distanceMi: 3.8, telehealth: true, acceptingNew: true, affiliation: "False Creek Cardiology", rating: 4.7, address: "550 W 6th Ave, Vancouver, BC V5Z 1A1", phone: "(604) 555-0453", lat: 49.2643, lng: -123.1192 },
+    { id: "p27", name: "Dr. Connor Lee, MD", specialty: "Gastroenterology", city: "Vancouver, BC", distanceMi: 5.0, telehealth: true, acceptingNew: true, affiliation: "Vancouver Digestive Health", rating: 4.5, address: "1144 Burrard St, Vancouver, BC V6Z 2A5", phone: "(604) 555-0564", lat: 49.2786, lng: -123.1297 },
+    { id: "p28", name: "Dr. Amelia Beauchamp, MD", specialty: "Rheumatology", city: "Toronto, ON", distanceMi: 2.2, telehealth: true, acceptingNew: true, affiliation: "Toronto Western Rheumatology", rating: 4.9, address: "399 Bathurst St, Toronto, ON M5T 2S8", phone: "(416) 555-0145", lat: 43.6543, lng: -79.4044 },
+    { id: "p29", name: "Dr. Rohan Singh, MD", specialty: "Endocrinology", city: "Toronto, ON", distanceMi: 3.0, telehealth: true, acceptingNew: true, affiliation: "Mount Sinai Diabetes Centre", rating: 4.7, address: "60 Murray St, Toronto, ON M5T 3L9", phone: "(416) 555-0156", lat: 43.6573, lng: -79.3895 },
+    { id: "p30", name: "Dr. Sarah Mackenzie, MD", specialty: "Neurology", city: "Toronto, ON", distanceMi: 4.2, telehealth: false, acceptingNew: true, affiliation: "Toronto MS Clinic", rating: 4.8, address: "399 Bathurst St, Toronto, ON M5T 2S8", phone: "(416) 555-0267", lat: 43.6541, lng: -79.4043 },
+    { id: "p31", name: "Dr. David Bergeron, MD", specialty: "Cardiology", city: "Toronto, ON", distanceMi: 5.5, telehealth: true, acceptingNew: false, affiliation: "Sunnybrook Heart Centre", rating: 4.6, address: "2075 Bayview Ave, Toronto, ON M4N 3M5", phone: "(416) 555-0378", lat: 43.7222, lng: -79.3737 },
+    { id: "p32", name: "Dr. Léa Dubois, MD", specialty: "Rheumatology", city: "Montreal, QC", distanceMi: 2.8, telehealth: true, acceptingNew: true, affiliation: "Clinique de Rhumatologie de Montréal", rating: 4.8, address: "1650 Cedar Ave, Montreal, QC H3G 1A4", phone: "(514) 555-0189", lat: 45.4949, lng: -73.5895 },
+    { id: "p33", name: "Dr. François Gagnon, MD", specialty: "Endocrinology", city: "Montreal, QC", distanceMi: 3.6, telehealth: true, acceptingNew: true, affiliation: "Hôpital Notre-Dame Endocrinology", rating: 4.6, address: "1560 Sherbrooke E, Montreal, QC H2L 4M1", phone: "(514) 555-0290", lat: 45.5247, lng: -73.5566 },
+    { id: "p34", name: "Dr. Liam Whitehorse, MD", specialty: "Pulmonology", city: "Calgary, AB", distanceMi: 4.4, telehealth: false, acceptingNew: true, affiliation: "Foothills Respiratory Centre", rating: 4.7, address: "1403 29 St NW, Calgary, AB T2N 2T9", phone: "(403) 555-0301", lat: 51.0686, lng: -114.137 },
+    { id: "p35", name: "Dr. Robert Martin, MD", specialty: "Cardiology", city: "Calgary, AB", distanceMi: 5.2, telehealth: true, acceptingNew: true, affiliation: "South Health Heart Clinic", rating: 4.5, address: "4448 Front St SE, Calgary, AB T3M 1M4", phone: "(403) 555-0412", lat: 50.9132, lng: -113.9657 },
+    { id: "p36", name: "Dr. Kayla Cardinal, MD", specialty: "Neurology", city: "Edmonton, AB", distanceMi: 6.0, telehealth: true, acceptingNew: true, affiliation: "Edmonton Headache & MS Clinic", rating: 4.6, address: "8440 112 St NW, Edmonton, AB T6G 2B7", phone: "(780) 555-0523", lat: 53.5202, lng: -113.5237 },
+    { id: "p37", name: "Dr. Jonathan Wells, MD", specialty: "Gastroenterology", city: "Ottawa, ON", distanceMi: 3.5, telehealth: true, acceptingNew: true, affiliation: "Ottawa Digestive Health Clinic", rating: 4.7, address: "501 Smyth Rd, Ottawa, ON K1H 8L6", phone: "(613) 555-0634", lat: 45.4019, lng: -75.6469 },
+
+    /* More US cities */
+    { id: "p38", name: "Dr. Isabelle Tran, MD", specialty: "Rheumatology", city: "Seattle, WA", distanceMi: 3.1, telehealth: true, acceptingNew: true, affiliation: "Puget Sound Arthritis Center", rating: 4.8, address: "1100 9th Ave, Seattle, WA 98101", phone: "(206) 555-0145", lat: 47.6088, lng: -122.3293 },
+    { id: "p39", name: "Dr. Marcus Johnson, MD", specialty: "Endocrinology", city: "Seattle, WA", distanceMi: 4.5, telehealth: true, acceptingNew: true, affiliation: "Pacific Northwest Endocrine", rating: 4.7, address: "1959 NE Pacific St, Seattle, WA 98195", phone: "(206) 555-0256", lat: 47.6504, lng: -122.3082 },
+    { id: "p40", name: "Dr. Sofia Reyes, MD", specialty: "Cardiology", city: "Los Angeles, CA", distanceMi: 6.2, telehealth: true, acceptingNew: true, affiliation: "Cedars Heart Institute", rating: 4.8, address: "127 S San Vicente Blvd, Los Angeles, CA 90048", phone: "(310) 555-0367", lat: 34.0747, lng: -118.3814 },
+    { id: "p41", name: "Dr. Wei Zhang, MD", specialty: "Pulmonology", city: "Los Angeles, CA", distanceMi: 7.8, telehealth: false, acceptingNew: true, affiliation: "Westside Lung Specialists", rating: 4.6, address: "11645 Wilshire Blvd, Los Angeles, CA 90025", phone: "(310) 555-0478", lat: 34.0488, lng: -118.4528 },
+    { id: "p42", name: "Dr. Allison Brooks, MD", specialty: "Neurology", city: "San Francisco, CA", distanceMi: 2.9, telehealth: true, acceptingNew: true, affiliation: "Bay Area Neuroscience Group", rating: 4.9, address: "505 Parnassus Ave, San Francisco, CA 94143", phone: "(415) 555-0589", lat: 37.7635, lng: -122.4585 },
+    { id: "p43", name: "Dr. Diego Martinez, MD", specialty: "Endocrinology", city: "Miami, FL", distanceMi: 4.0, telehealth: true, acceptingNew: true, affiliation: "South Florida Diabetes Institute", rating: 4.7, address: "1611 NW 12th Ave, Miami, FL 33136", phone: "(305) 555-0691", lat: 25.7901, lng: -80.2103 },
+    { id: "p44", name: "Dr. Maria Santos, MD", specialty: "Rheumatology", city: "Houston, TX", distanceMi: 5.5, telehealth: true, acceptingNew: true, affiliation: "Texas Medical Center Rheumatology", rating: 4.6, address: "6620 Main St, Houston, TX 77030", phone: "(713) 555-0702", lat: 29.7099, lng: -95.3994 },
+    { id: "p45", name: "Dr. Christopher Pierce, MD", specialty: "Cardiology", city: "Atlanta, GA", distanceMi: 3.7, telehealth: true, acceptingNew: false, affiliation: "Emory Heart and Vascular Center", rating: 4.8, address: "1365 Clifton Rd NE, Atlanta, GA 30322", phone: "(404) 555-0813", lat: 33.7926, lng: -84.3232 },
+    { id: "p46", name: "Dr. Olivia Sterling, MD", specialty: "Gastroenterology", city: "Denver, CO", distanceMi: 4.4, telehealth: true, acceptingNew: true, affiliation: "Rocky Mountain GI Associates", rating: 4.7, address: "1635 Aurora Ct, Denver, CO 80045", phone: "(303) 555-0924", lat: 39.7445, lng: -104.8389 },
+    { id: "p47", name: "Dr. Kenji Yamamoto, MD", specialty: "Neurology", city: "Philadelphia, PA", distanceMi: 5.0, telehealth: false, acceptingNew: true, affiliation: "Penn Medicine Neuroscience Center", rating: 4.6, address: "3400 Spruce St, Philadelphia, PA 19104", phone: "(215) 555-0135", lat: 39.9499, lng: -75.1928 },
+    { id: "p48", name: "Dr. Natasha Ali, MD", specialty: "Pulmonology", city: "Phoenix, AZ", distanceMi: 6.7, telehealth: true, acceptingNew: true, affiliation: "Arizona Lung & Sleep Specialists", rating: 4.5, address: "350 W Thomas Rd, Phoenix, AZ 85013", phone: "(602) 555-0246", lat: 33.4815, lng: -112.0851 },
+    { id: "p49", name: "Dr. Benjamin Hayes, MD", specialty: "Rheumatology", city: "Dallas, TX", distanceMi: 5.3, telehealth: true, acceptingNew: true, affiliation: "North Texas Rheumatology Clinic", rating: 4.7, address: "5939 Harry Hines Blvd, Dallas, TX 75390", phone: "(214) 555-0357", lat: 32.8128, lng: -96.8398 },
   ];
 
   var providerList = document.getElementById("provider-list");
@@ -2514,6 +3060,24 @@
 
   if (providerList) {
     fillSelect(providerSpecialty, uniqueField(PROVIDERS, "specialty"));
+    if (providerLocation) {
+      var cities = uniqueField(PROVIDERS, "city");
+      for (var ci = 0; ci < cities.length; ci++) {
+        var alreadyHas = false;
+        for (var oi = 0; oi < providerLocation.options.length; oi++) {
+          if (providerLocation.options[oi].value === cities[ci]) {
+            alreadyHas = true;
+            break;
+          }
+        }
+        if (!alreadyHas) {
+          var opt = document.createElement("option");
+          opt.value = cities[ci];
+          opt.textContent = cities[ci];
+          providerLocation.appendChild(opt);
+        }
+      }
+    }
     providerLocation.addEventListener("change", function () {
       providerState.location = providerLocation.value;
       renderProviders();
@@ -2568,6 +3132,33 @@
     { id: "rx12", name: "Express Scripts Mail Pharmacy", chain: "Express Scripts", kind: "online", distanceMi: null, hours: "Phone support 24/7", phone: "(800) 555-0911", address: "Nationwide mail-order service", info: "Mail-order prescriptions, 90-day supplies, automatic refills", lat: null, lng: null },
     { id: "rx13", name: "Accredo Specialty Pharmacy", chain: "Accredo", kind: "online", distanceMi: null, hours: "Phone support 24/7", phone: "(800) 555-0922", address: "Nationwide specialty mail-order service", info: "Specialty and biologic medications shipped nationwide, nurse support", lat: null, lng: null },
     { id: "rx14", name: "CenterWell Pharmacy", chain: "CenterWell", kind: "online", distanceMi: null, hours: "Phone support 24/7", phone: "(800) 555-0933", address: "Nationwide mail-order service", info: "Mail-order prescriptions, automatic refills, pharmacist consultations", lat: null, lng: null },
+
+    /* Canada */
+    { id: "rx15", name: "Yaletown Pharmacy", chain: "Shoppers Drug Mart", kind: "retail", distanceMi: 2.0, hours: "Mon–Sun 8 AM–10 PM", phone: "(604) 555-0411", address: "1006 Homer St, Vancouver, BC V6B 2X1", info: "Prescriptions, immunizations, walk-in clinic, home delivery", lat: 49.276, lng: -123.1227 },
+    { id: "rx16", name: "Kitsilano Specialty Pharmacy", chain: "Independent", kind: "specialty", distanceMi: 3.7, hours: "Mon–Fri 9 AM–6 PM", phone: "(604) 555-0522", address: "2155 W Broadway, Vancouver, BC V6K 2C8", info: "Biologics, specialty injectables, infusion coordination", lat: 49.2645, lng: -123.1572 },
+    { id: "rx17", name: "Vancouver Infusion Centre", chain: "Independent", kind: "infusion", distanceMi: 3.4, hours: "Mon–Sat 7 AM–7 PM", phone: "(604) 555-0633", address: "899 W 12th Ave, Vancouver, BC V5Z 1M9", info: "Infusion specialties: Rheumatology, Neurology, Gastroenterology", lat: 49.2604, lng: -123.1262 },
+    { id: "rx18", name: "Burnaby Community Pharmacy", chain: "London Drugs", kind: "retail", distanceMi: 7.8, hours: "Mon–Sun 8 AM–11 PM", phone: "(604) 555-0744", address: "4567 Lougheed Hwy, Burnaby, BC V5C 3Z6", info: "Prescriptions, immunizations, drive-thru, MedsCheck reviews", lat: 49.262, lng: -122.999 },
+    { id: "rx19", name: "Toronto Downtown Pharmacy", chain: "Rexall", kind: "retail", distanceMi: 1.4, hours: "Mon–Sun 7 AM–11 PM", phone: "(416) 555-0855", address: "120 Adelaide St W, Toronto, ON M5H 1T1", info: "Prescriptions, immunizations, blister packs, travel clinic", lat: 43.649, lng: -79.3819 },
+    { id: "rx20", name: "Bay Street Specialty Pharmacy", chain: "Independent", kind: "specialty", distanceMi: 2.5, hours: "Mon–Fri 9 AM–6 PM", phone: "(416) 555-0966", address: "777 Bay St, Toronto, ON M5G 2C8", info: "Biologics, specialty fertility and rheumatology meds, home delivery", lat: 43.6608, lng: -79.3849 },
+    { id: "rx21", name: "Toronto General Infusion Centre", chain: "Independent", kind: "infusion", distanceMi: 3.2, hours: "Mon–Sat 7 AM–6 PM", phone: "(416) 555-0177", address: "200 Elizabeth St, Toronto, ON M5G 2C4", info: "Infusion specialties: Rheumatology, Neurology, Gastroenterology, Oncology", lat: 43.6585, lng: -79.3892 },
+    { id: "rx22", name: "Pharmacie Centre-Ville", chain: "Jean Coutu", kind: "retail", distanceMi: 1.8, hours: "Mon–Sun 8 AM–10 PM", phone: "(514) 555-0288", address: "501 Rue Sainte-Catherine E, Montreal, QC H2L 2C9", info: "Prescriptions, immunizations, French and English service", lat: 45.512, lng: -73.5577 },
+    { id: "rx23", name: "Montreal Pharmacie de Spécialités", chain: "Independent", kind: "specialty", distanceMi: 4.0, hours: "Lun–Ven 9h–18h", phone: "(514) 555-0399", address: "1650 Cedar Ave, Montreal, QC H3G 1A4", info: "Biologiques, médicaments spécialisés, soutien d'autorisation", lat: 45.4949, lng: -73.5895 },
+    { id: "rx24", name: "Calgary West Pharmacy", chain: "London Drugs", kind: "retail", distanceMi: 5.6, hours: "Mon–Sun 8 AM–10 PM", phone: "(403) 555-0410", address: "1818 Crowchild Trail NW, Calgary, AB T2M 3Y7", info: "Prescriptions, immunizations, MedsCheck, home delivery", lat: 51.0795, lng: -114.119 },
+    { id: "rx25", name: "Edmonton South Pharmacy", chain: "Shoppers Drug Mart", kind: "retail", distanceMi: 7.2, hours: "Mon–Sun 8 AM–10 PM", phone: "(780) 555-0521", address: "10832 82 Ave NW, Edmonton, AB T6E 2B3", info: "Prescriptions, immunizations, travel clinic, compounding", lat: 53.5187, lng: -113.4943 },
+    { id: "rx26", name: "Ottawa Civic Pharmacy", chain: "Shoppers Drug Mart", kind: "retail", distanceMi: 3.0, hours: "Mon–Sun 7 AM–10 PM", phone: "(613) 555-0632", address: "1053 Carling Ave, Ottawa, ON K1Y 4E9", info: "Prescriptions, immunizations, blister packs, home delivery", lat: 45.395, lng: -75.7299 },
+
+    /* More US cities */
+    { id: "rx27", name: "Seattle Capitol Hill Pharmacy", chain: "Bartell Drugs", kind: "retail", distanceMi: 2.2, hours: "Mon–Sun 8 AM–10 PM", phone: "(206) 555-0743", address: "600 Broadway E, Seattle, WA 98102", info: "Prescriptions, immunizations, home delivery", lat: 47.6253, lng: -122.3211 },
+    { id: "rx28", name: "Pacific Northwest Specialty Pharmacy", chain: "Independent", kind: "specialty", distanceMi: 3.5, hours: "Mon–Fri 9 AM–6 PM", phone: "(206) 555-0854", address: "1959 NE Pacific St, Seattle, WA 98195", info: "Biologics, specialty injectables, prior-authorization support", lat: 47.6504, lng: -122.3082 },
+    { id: "rx29", name: "Beverly Hills Pharmacy", chain: "CVS Pharmacy", kind: "retail", distanceMi: 5.1, hours: "Mon–Sun 8 AM–10 PM", phone: "(310) 555-0965", address: "9201 Wilshire Blvd, Beverly Hills, CA 90210", info: "Prescriptions, immunizations, drive-thru, home delivery", lat: 34.0673, lng: -118.3878 },
+    { id: "rx30", name: "SF Mission Specialty Pharmacy", chain: "Independent", kind: "specialty", distanceMi: 2.7, hours: "Mon–Fri 9 AM–6 PM", phone: "(415) 555-0176", address: "505 Parnassus Ave, San Francisco, CA 94143", info: "Biologics, infusion-bridging, financial-assistance support", lat: 37.7635, lng: -122.4585 },
+    { id: "rx31", name: "Miami Brickell Pharmacy", chain: "Walgreens", kind: "retail", distanceMi: 3.1, hours: "Mon–Sun 24 hours", phone: "(305) 555-0287", address: "1109 Brickell Ave, Miami, FL 33131", info: "Prescriptions, immunizations, drive-thru, 24-hour service", lat: 25.7615, lng: -80.1916 },
+    { id: "rx32", name: "Houston Medical Center Infusion", chain: "Independent", kind: "infusion", distanceMi: 4.6, hours: "Mon–Sat 7 AM–7 PM", phone: "(713) 555-0398", address: "6620 Main St, Houston, TX 77030", info: "Infusion specialties: Rheumatology, Neurology, Oncology, Immunology", lat: 29.7099, lng: -95.3994 },
+    { id: "rx33", name: "Atlanta Midtown Pharmacy", chain: "CVS Pharmacy", kind: "retail", distanceMi: 3.4, hours: "Mon–Sun 7 AM–10 PM", phone: "(404) 555-0409", address: "595 W Peachtree St NW, Atlanta, GA 30308", info: "Prescriptions, immunizations, drive-thru", lat: 33.7714, lng: -84.3854 },
+    { id: "rx34", name: "Denver Cherry Creek Pharmacy", chain: "King Soopers", kind: "retail", distanceMi: 4.0, hours: "Mon–Sun 7 AM–10 PM", phone: "(303) 555-0510", address: "200 Quebec St, Denver, CO 80230", info: "Prescriptions, immunizations, home delivery", lat: 39.7155, lng: -104.8901 },
+    { id: "rx35", name: "Philadelphia Center City Pharmacy", chain: "Walgreens", kind: "retail", distanceMi: 2.6, hours: "Mon–Sun 8 AM–10 PM", phone: "(215) 555-0621", address: "1925 Chestnut St, Philadelphia, PA 19103", info: "Prescriptions, immunizations, drive-thru, blister packs", lat: 39.9531, lng: -75.1735 },
+    { id: "rx36", name: "Phoenix Central Specialty Pharmacy", chain: "Independent", kind: "specialty", distanceMi: 5.5, hours: "Mon–Fri 8:30 AM–6 PM", phone: "(602) 555-0732", address: "350 W Thomas Rd, Phoenix, AZ 85013", info: "Biologics, specialty medications, financial-assistance support", lat: 33.4815, lng: -112.0851 },
+    { id: "rx37", name: "Dallas Uptown Pharmacy", chain: "CVS Pharmacy", kind: "retail", distanceMi: 4.2, hours: "Mon–Sun 8 AM–10 PM", phone: "(214) 555-0843", address: "3030 McKinney Ave, Dallas, TX 75204", info: "Prescriptions, immunizations, drive-thru, home delivery", lat: 32.7969, lng: -96.8001 },
   ];
 
   var PHARMACY_KIND_LABELS = {
@@ -3000,22 +3591,35 @@
     trialList.innerHTML = html;
   }
 
+  var TRIAL_BASE_COUNTRIES = [
+    "United States",
+    "Canada",
+    "United Kingdom",
+    "Australia",
+    "Germany",
+    "France",
+    "Spain",
+    "Italy",
+    "Netherlands",
+    "Japan",
+  ];
   function refreshCountryOptions() {
     if (!trialCountry) return;
     var set = {};
-    for (var i = 0; i < trialResults.length; i++) {
-      var cs = trialResults[i].countries || [];
-      for (var j = 0; j < cs.length; j++) set[cs[j]] = true;
+    for (var i = 0; i < TRIAL_BASE_COUNTRIES.length; i++) set[TRIAL_BASE_COUNTRIES[i]] = true;
+    for (var j = 0; j < trialResults.length; j++) {
+      var cs = trialResults[j].countries || [];
+      for (var k = 0; k < cs.length; k++) set[cs[k]] = true;
     }
     var countries = Object.keys(set).sort();
     var current = trialState.country;
     var html = '<option value="all">All countries</option>';
-    for (var k = 0; k < countries.length; k++) {
+    for (var m = 0; m < countries.length; m++) {
       html +=
         '<option value="' +
-        escapeHtml(countries[k]) +
+        escapeHtml(countries[m]) +
         '">' +
-        escapeHtml(countries[k]) +
+        escapeHtml(countries[m]) +
         "</option>";
     }
     trialCountry.innerHTML = html;
@@ -3074,6 +3678,7 @@
       "Completed",
       "Terminated",
     ]);
+    refreshCountryOptions();
 
     trialSearchBtn.addEventListener("click", function () {
       runTrialSearch(trialSearch.value);
@@ -3168,12 +3773,127 @@
     { id: "r30", name: "RxAssist", site: "rxassist.org", category: "Financial Aid", url: "https://www.rxassist.org", conditions: [], description: "A directory of pharmaceutical patient-assistance programs that provide free or low-cost medications." },
     { id: "r31", name: "HealthWell Foundation", site: "healthwellfoundation.org", category: "Financial Aid", url: "https://www.healthwellfoundation.org", conditions: [], description: "Grants that help insured patients afford copays, premiums, and other out-of-pocket treatment costs." },
     { id: "r32", name: "GoodRx", site: "goodrx.com", category: "Financial Aid", url: "https://www.goodrx.com", conditions: [], description: "Compares prescription prices across pharmacies and provides free discount coupons to lower medication costs." },
+
+    /* MedlinePlus — plain-language NIH pages per condition */
+    { id: "r33", name: "MedlinePlus — Lupus", site: "medlineplus.gov/lupus.html", category: "Patient Education", url: "https://medlineplus.gov/lupus.html", conditions: ["Systemic Lupus Erythematosus"], description: "Plain-language NIH overview of lupus: symptoms, diagnosis, treatment, and living-with information, with links to clinical trials." },
+    { id: "r34", name: "MedlinePlus — Rheumatoid Arthritis", site: "medlineplus.gov/rheumatoidarthritis.html", category: "Patient Education", url: "https://medlineplus.gov/rheumatoidarthritis.html", conditions: ["Rheumatoid Arthritis"], description: "NIH plain-language overview of rheumatoid arthritis with symptoms, treatments, and self-care guidance." },
+    { id: "r35", name: "MedlinePlus — Type 2 Diabetes", site: "medlineplus.gov/diabetestype2.html", category: "Patient Education", url: "https://medlineplus.gov/diabetestype2.html", conditions: ["Type 2 Diabetes Mellitus"], description: "NIH plain-language guide to type 2 diabetes: blood sugar, A1c, treatments, complications, and self-management." },
+    { id: "r36", name: "MedlinePlus — Type 1 Diabetes", site: "medlineplus.gov/diabetestype1.html", category: "Patient Education", url: "https://medlineplus.gov/diabetestype1.html", conditions: ["Type 1 Diabetes Mellitus"], description: "NIH plain-language guide to type 1 diabetes: insulin therapy, monitoring, and life with T1D." },
+    { id: "r37", name: "MedlinePlus — Asthma", site: "medlineplus.gov/asthma.html", category: "Patient Education", url: "https://medlineplus.gov/asthma.html", conditions: ["Asthma"], description: "NIH plain-language asthma overview with triggers, action plans, and inhaler guidance." },
+    { id: "r38", name: "MedlinePlus — COPD", site: "medlineplus.gov/copd.html", category: "Patient Education", url: "https://medlineplus.gov/copd.html", conditions: ["Chronic Obstructive Pulmonary Disease"], description: "NIH plain-language COPD overview: smoking, inhalers, pulmonary rehab, and flare-up management." },
+    { id: "r39", name: "MedlinePlus — High Blood Pressure", site: "medlineplus.gov/highbloodpressure.html", category: "Patient Education", url: "https://medlineplus.gov/highbloodpressure.html", conditions: ["Hypertension"], description: "NIH overview of high blood pressure with home monitoring, DASH diet, and medication guidance." },
+    { id: "r40", name: "MedlinePlus — Heart Failure", site: "medlineplus.gov/heartfailure.html", category: "Patient Education", url: "https://medlineplus.gov/heartfailure.html", conditions: ["Heart Failure"], description: "NIH plain-language guide to heart failure: symptoms, treatments, and daily self-monitoring." },
+    { id: "r41", name: "MedlinePlus — Migraine", site: "medlineplus.gov/migraine.html", category: "Patient Education", url: "https://medlineplus.gov/migraine.html", conditions: ["Migraine"], description: "NIH overview of migraine: triggers, acute treatment, preventives, and when to seek care." },
+    { id: "r42", name: "MedlinePlus — Multiple Sclerosis", site: "medlineplus.gov/multiplesclerosis.html", category: "Patient Education", url: "https://medlineplus.gov/multiplesclerosis.html", conditions: ["Multiple Sclerosis"], description: "NIH plain-language guide to MS: symptoms, MRI, disease-modifying therapies, and living-with information." },
+    { id: "r43", name: "MedlinePlus — Crohn's Disease", site: "medlineplus.gov/crohnsdisease.html", category: "Patient Education", url: "https://medlineplus.gov/crohnsdisease.html", conditions: ["Crohn's Disease"], description: "NIH overview of Crohn's disease: symptoms, diagnosis, biologics, and surgery options." },
+    { id: "r44", name: "MedlinePlus — Hypothyroidism", site: "medlineplus.gov/hypothyroidism.html", category: "Patient Education", url: "https://medlineplus.gov/hypothyroidism.html", conditions: ["Hypothyroidism"], description: "NIH plain-language guide to hypothyroidism: TSH, levothyroxine, and monitoring." },
+
+    /* Peer communities */
+    { id: "r45", name: "MyLupusTeam", site: "mylupusteam.com", category: "Peer Community", url: "https://www.mylupusteam.com", conditions: ["Systemic Lupus Erythematosus"], description: "Social network of more than 250,000 people living with lupus — questions, daily life, and treatment experiences." },
+    { id: "r46", name: "MyRATeam", site: "myrateam.com", category: "Peer Community", url: "https://www.myrateam.com", conditions: ["Rheumatoid Arthritis"], description: "Patient social network for rheumatoid arthritis — share experiences, treatment stories, and daily-life tips." },
+    { id: "r47", name: "TuDiabetes / Beyond Type 1 Community", site: "beyondtype1.org/community", category: "Peer Community", url: "https://beyondtype1.org/community/", conditions: ["Type 1 Diabetes Mellitus"], description: "Online community for people with type 1 diabetes and their families, with peer mentors and forums." },
+    { id: "r48", name: "Diabetes Daily Forums", site: "diabetesdaily.com/forum", category: "Peer Community", url: "https://www.diabetesdaily.com/forum/", conditions: ["Type 1 Diabetes Mellitus", "Type 2 Diabetes Mellitus"], description: "Long-running peer forum for people living with both type 1 and type 2 diabetes." },
+    { id: "r49", name: "MyAsthmaTeam", site: "myasthmateam.com", category: "Peer Community", url: "https://www.myasthmateam.com", conditions: ["Asthma"], description: "Patient social network for people with asthma — triggers, inhalers, and daily-life support." },
+    { id: "r50", name: "MyCOPDTeam", site: "mycopdteam.com", category: "Peer Community", url: "https://www.mycopdteam.com", conditions: ["Chronic Obstructive Pulmonary Disease"], description: "Patient social network for people living with COPD — oxygen, rehab, and daily-life stories." },
+    { id: "r51", name: "Inspire Heart Failure Community", site: "inspire.com/groups/heart-failure-society-of-america", category: "Peer Community", url: "https://www.inspire.com/groups/heart-failure-society-of-america/", conditions: ["Heart Failure"], description: "Moderated peer community supported by HFSA — questions, treatment stories, and family support." },
+    { id: "r52", name: "MyMigraineTeam", site: "mymigraineteam.com", category: "Peer Community", url: "https://www.mymigraineteam.com", conditions: ["Migraine"], description: "Patient social network for people with migraine — triggers, preventives, and acute-treatment experiences." },
+    { id: "r53", name: "MyMSTeam", site: "mymsteam.com", category: "Peer Community", url: "https://www.mymsteam.com", conditions: ["Multiple Sclerosis"], description: "Patient social network for people with MS — disease-modifying therapies, symptoms, and life stories." },
+    { id: "r54", name: "MyCrohnsAndColitisTeam", site: "mycrohnsandcolitisteam.com", category: "Peer Community", url: "https://www.mycrohnsandcolitisteam.com", conditions: ["Crohn's Disease"], description: "Patient social network for people with IBD — biologics, flares, surgery, and life stories." },
+
+    /* Clinical guidelines */
+    { id: "r55", name: "EULAR — Lupus Guidelines", site: "eular.org", category: "Clinical Guidelines", url: "https://www.eular.org/recommendations-management", conditions: ["Systemic Lupus Erythematosus"], description: "Official EULAR recommendations for managing systemic lupus erythematosus, updated 2023." },
+    { id: "r56", name: "ACR — RA Treatment Guidelines", site: "rheumatology.org", category: "Clinical Guidelines", url: "https://rheumatology.org/clinical-practice-guidelines", conditions: ["Rheumatoid Arthritis"], description: "American College of Rheumatology evidence-based treatment guidelines for rheumatoid arthritis." },
+    { id: "r57", name: "ADA — Standards of Care", site: "diabetesjournals.org", category: "Clinical Guidelines", url: "https://diabetesjournals.org/care/issue/47/Supplement_1", conditions: ["Type 1 Diabetes Mellitus", "Type 2 Diabetes Mellitus"], description: "American Diabetes Association annual Standards of Care — comprehensive evidence-based guidelines." },
+    { id: "r58", name: "GINA — Global Asthma Strategy", site: "ginasthma.org", category: "Clinical Guidelines", url: "https://ginasthma.org/", conditions: ["Asthma"], description: "Global Initiative for Asthma — the international consensus guideline for asthma management." },
+    { id: "r59", name: "GOLD — COPD Report", site: "goldcopd.org", category: "Clinical Guidelines", url: "https://goldcopd.org/", conditions: ["Chronic Obstructive Pulmonary Disease"], description: "Global Initiative for Chronic Obstructive Lung Disease — the international COPD strategy document." },
+    { id: "r60", name: "ACC/AHA — Hypertension Guideline", site: "ahajournals.org", category: "Clinical Guidelines", url: "https://www.ahajournals.org/doi/10.1161/HYP.0000000000000065", conditions: ["Hypertension"], description: "American College of Cardiology / American Heart Association guideline for managing high blood pressure." },
+    { id: "r61", name: "AHA — Heart Failure Guideline", site: "ahajournals.org", category: "Clinical Guidelines", url: "https://www.ahajournals.org/doi/10.1161/CIR.0000000000001063", conditions: ["Heart Failure"], description: "Joint AHA / ACC / HFSA 2022 guideline for the management of heart failure." },
+    { id: "r62", name: "AAN — MS Practice Guideline", site: "aan.com", category: "Clinical Guidelines", url: "https://www.aan.com/Guidelines/home/GuidelineDetail/898", conditions: ["Multiple Sclerosis"], description: "American Academy of Neurology evidence-based practice guideline for disease-modifying therapies in MS." },
+    { id: "r63", name: "ECCO — Crohn's Therapeutic Guidelines", site: "ecco-ibd.eu", category: "Clinical Guidelines", url: "https://www.ecco-ibd.eu/publications/ecco-guidelines-science/published-ecco-guidelines.html", conditions: ["Crohn's Disease"], description: "European Crohn's and Colitis Organisation guidelines on managing Crohn's disease." },
+    { id: "r64", name: "ATA — Hypothyroidism Guidelines", site: "thyroid.org", category: "Clinical Guidelines", url: "https://www.thyroid.org/professionals/ata-professional-guidelines/", conditions: ["Hypothyroidism"], description: "American Thyroid Association clinical practice guidelines for the treatment of hypothyroidism." },
+
+    /* Financial aid + assistance — condition-specific */
+    { id: "r65", name: "Patient Access Network — Autoimmune", site: "panfoundation.org", category: "Financial Aid", url: "https://www.panfoundation.org/disease-funds/", conditions: ["Systemic Lupus Erythematosus", "Rheumatoid Arthritis", "Multiple Sclerosis", "Crohn's Disease"], description: "Disease-specific copay-assistance grants for autoimmune conditions (when funds are open)." },
+    { id: "r66", name: "Insulin Affordability Programs", site: "insulinaffordability.com", category: "Financial Aid", url: "https://www.diabetes.org/tools-support/health-insurance/health-care-rights/insulin-affordability", conditions: ["Type 1 Diabetes Mellitus", "Type 2 Diabetes Mellitus"], description: "ADA-maintained directory of manufacturer and state insulin-affordability programs and discount cards." },
+    { id: "r67", name: "GINA — Patient Resources", site: "ginasthma.org/patient-information", category: "Patient Education", url: "https://ginasthma.org/patient-information/", conditions: ["Asthma"], description: "Patient-facing asthma education from GINA, including written action-plan templates." },
+    { id: "r68", name: "American Lung Association Better Breathers Club", site: "lung.org/help-support/better-breathers-club", category: "Peer Community", url: "https://www.lung.org/help-support/better-breathers-club", conditions: ["Chronic Obstructive Pulmonary Disease", "Asthma"], description: "Local in-person and virtual support groups for adults living with chronic lung diseases." },
+    { id: "r69", name: "Million Hearts Initiative", site: "millionhearts.hhs.gov", category: "Patient Education", url: "https://millionhearts.hhs.gov/", conditions: ["Hypertension", "Heart Failure"], description: "U.S. national initiative with free patient education on blood-pressure control and cardiovascular-risk reduction." },
+    { id: "r70", name: "Migraine World Summit", site: "migraineworldsummit.com", category: "Patient Education", url: "https://migraineworldsummit.com/", conditions: ["Migraine"], description: "Free annual virtual summit featuring leading headache specialists and patient-focused sessions." },
+    { id: "r71", name: "MSAA Helpline & Lending Library", site: "mymsaa.org/help-and-support", category: "Patient Education", url: "https://mymsaa.org/help-and-support/", conditions: ["Multiple Sclerosis"], description: "Free helpline, lending library of cooling vests and mobility equipment, and one-on-one peer support for MS." },
+    { id: "r72", name: "Crohn's & Colitis Foundation — Power of Two", site: "crohnscolitisfoundation.org/patientsandcaregivers/power-of-two", category: "Peer Community", url: "https://www.crohnscolitisfoundation.org/patientsandcaregivers/power-of-two", conditions: ["Crohn's Disease"], description: "One-to-one peer-mentor program matching newly-diagnosed IBD patients with someone who has been there." },
+    { id: "r73", name: "Bottom Line Inc — Thyroid Patient Guide", site: "thyroid.org/patient-thyroid-information", category: "Patient Education", url: "https://www.thyroid.org/patient-thyroid-information/", conditions: ["Hypothyroidism"], description: "American Thyroid Association patient-information library covering diagnosis, treatment, and pregnancy." },
+
+    /* Caregiver and mental-health resources */
+    { id: "r74", name: "Caregiver Action Network", site: "caregiveraction.org", category: "Caregiver Support", url: "https://www.caregiveraction.org/", conditions: [], description: "Free education, peer support, and a helpline for family caregivers of people living with chronic illness." },
+    { id: "r75", name: "Family Caregiver Alliance", site: "caregiver.org", category: "Caregiver Support", url: "https://www.caregiver.org/", conditions: [], description: "Caregiver navigator, online support groups, and condition-specific guides for family caregivers." },
+    { id: "r76", name: "988 Suicide & Crisis Lifeline", site: "988lifeline.org", category: "Mental Health", url: "https://988lifeline.org/", conditions: [], description: "Free, confidential 24/7 support for people in mental-health crisis or emotional distress (US/Canada — call or text 988)." },
+    { id: "r77", name: "Crisis Text Line", site: "crisistextline.org", category: "Mental Health", url: "https://www.crisistextline.org/", conditions: [], description: "Free, confidential mental-health support by text — text HOME to 741741 (US) or 686868 (Canada)." },
+    { id: "r78", name: "Samaritans (UK)", site: "samaritans.org", category: "Mental Health", url: "https://www.samaritans.org/", conditions: [], description: "Free, confidential 24/7 emotional-support line in the UK and Ireland — call 116 123 or email jo@samaritans.org." },
+    { id: "r79", name: "Find a Helpline", site: "findahelpline.com", category: "Mental Health", url: "https://findahelpline.com/", conditions: [], description: "International directory of free, confidential helplines for mental-health, abuse, and crisis support by country." },
+    { id: "r80", name: "Mental Health America Screening Tools", site: "screening.mhanational.org", category: "Mental Health", url: "https://screening.mhanational.org/screening-tools/", conditions: [], description: "Free anonymous screening tools for depression, anxiety, and other common mental-health conditions." },
+    { id: "r81", name: "Anxiety and Depression Association", site: "adaa.org", category: "Mental Health", url: "https://adaa.org/", conditions: [], description: "Patient education, therapist finder, and peer-support groups for anxiety, depression, and OCD." },
+
+    /* Universal patient-empowerment + practical tools */
+    { id: "r82", name: "AHRQ — Questions to Ask Your Doctor", site: "ahrq.gov", category: "Patient Education", url: "https://www.ahrq.gov/questions/index.html", conditions: [], description: "U.S. government resource with question-prompt lists for any appointment — diagnosis, tests, medications, and follow-up." },
+    { id: "r83", name: "MyChart Patient Portal Guide", site: "mychart.com", category: "Patient Education", url: "https://www.mychart.com/", conditions: [], description: "How to access your hospital's MyChart patient portal — view labs, message your team, request refills." },
+    { id: "r84", name: "Advance Directives — CaringInfo", site: "caringinfo.org", category: "Patient Education", url: "https://www.caringinfo.org/", conditions: [], description: "Free state-specific advance-directive and living-will forms with plain-language guidance from the National Hospice & Palliative Care Organization." },
+    { id: "r85", name: "OpenNotes", site: "opennotes.org", category: "Patient Education", url: "https://www.opennotes.org/", conditions: [], description: "Education on reading and contributing to your own clinical notes — your legal right in the U.S. under the 21st Century Cures Act." },
+    { id: "r86", name: "FindTreatment.gov", site: "findtreatment.gov", category: "Patient Education", url: "https://findtreatment.gov/", conditions: [], description: "U.S. government locator for confidential substance-use and mental-health treatment facilities — free or low-cost options." },
+
+    /* Financial aid / safety net (universal) */
+    { id: "r87", name: "Partnership for Prescription Assistance", site: "medicineassistancetool.org", category: "Financial Aid", url: "https://medicineassistancetool.org/", conditions: [], description: "Pharma-industry directory of patient-assistance and copay programs for hundreds of prescription medications." },
+    { id: "r88", name: "Cancer Care Co-Pay Foundation", site: "cancercarecopay.org", category: "Financial Aid", url: "https://www.cancercarecopay.org/", conditions: [], description: "Copay-assistance program for chronic conditions, including autoimmune and inflammatory diseases (despite the name)." },
+    { id: "r89", name: "Good Days", site: "mygooddays.org", category: "Financial Aid", url: "https://www.mygooddays.org/", conditions: [], description: "Financial assistance for chronic-disease patients — copays, premiums, and travel for treatment." },
+    { id: "r90", name: "RxOutreach", site: "rxoutreach.org", category: "Financial Aid", url: "https://rxoutreach.org/", conditions: [], description: "Nonprofit mail-order pharmacy offering low-cost generic prescriptions to eligible patients." },
+    { id: "r91", name: "Medicare Extra Help / LIS", site: "ssa.gov/medicare/part-d-extra-help", category: "Financial Aid", url: "https://www.ssa.gov/medicare/part-d-extra-help", conditions: [], description: "Low-income subsidy to help people with limited resources pay for Medicare prescription drug coverage." },
+
+    /* Government / regulatory + safety */
+    { id: "r92", name: "FDA MedWatch", site: "fda.gov/safety/medwatch", category: "Patient Education", url: "https://www.fda.gov/safety/medwatch-fda-safety-information-and-adverse-event-reporting-program", conditions: [], description: "FDA program to report or read about medication and device safety issues, recalls, and adverse events." },
+    { id: "r93", name: "Vaccines.gov", site: "vaccines.gov", category: "Patient Education", url: "https://www.vaccines.gov/", conditions: [], description: "U.S. government site to find nearby vaccination locations and view recommended schedules for adults and children." },
+    { id: "r94", name: "Health Canada — Patient Information", site: "canada.ca/en/health-canada", category: "Patient Education", url: "https://www.canada.ca/en/health-canada.html", conditions: [], description: "Health Canada patient-information hub — drug safety, recalls, programs, and Canadian-system navigation." },
+    { id: "r95", name: "NHS — Health A to Z", site: "nhs.uk/conditions", category: "Patient Education", url: "https://www.nhs.uk/conditions/", conditions: [], description: "UK National Health Service plain-language health-condition guides — symptoms, treatments, and NHS pathways." },
+    { id: "r96", name: "WHO Patient Safety", site: "who.int/teams/integrated-health-services/patient-safety", category: "Patient Education", url: "https://www.who.int/teams/integrated-health-services/patient-safety", conditions: [], description: "World Health Organization resources on patient safety, including infection prevention and medication safety." },
+
+    /* Diet, exercise, wellness */
+    { id: "r97", name: "DASH Diet Eating Plan", site: "nhlbi.nih.gov/education/dash-eating-plan", category: "Patient Education", url: "https://www.nhlbi.nih.gov/education/dash-eating-plan", conditions: ["Hypertension", "Heart Failure", "Type 2 Diabetes Mellitus"], description: "NIH-developed Dietary Approaches to Stop Hypertension — meal-planning guide proven to lower blood pressure." },
+    { id: "r98", name: "Mediterranean Diet — Oldways", site: "oldwayspt.org/traditional-diets/mediterranean-diet", category: "Patient Education", url: "https://oldwayspt.org/traditional-diets/mediterranean-diet", conditions: ["Rheumatoid Arthritis", "Heart Failure", "Hypertension", "Type 2 Diabetes Mellitus"], description: "Evidence-based Mediterranean diet pyramid, recipes, and shopping guides from the Oldways nonprofit." },
+    { id: "r99", name: "Choose My Plate (USDA)", site: "myplate.gov", category: "Patient Education", url: "https://www.myplate.gov/", conditions: [], description: "USDA visual guide to balanced eating, with condition-specific guidance for diabetes, heart, kidney, and pregnancy nutrition." },
+    { id: "r100", name: "Exercise is Medicine", site: "exerciseismedicine.org", category: "Patient Education", url: "https://www.exerciseismedicine.org/", conditions: [], description: "Global health initiative with condition-specific exercise prescriptions and tools to find activity-friendly providers." },
+
+    /* Smoking, alcohol, sleep */
+    { id: "r101", name: "Smokefree.gov", site: "smokefree.gov", category: "Patient Education", url: "https://smokefree.gov/", conditions: ["Chronic Obstructive Pulmonary Disease", "Asthma", "Heart Failure", "Hypertension"], description: "Free, evidence-based smoking-cessation resources — quitlines (1-800-QUIT-NOW), apps, and text-message support." },
+    { id: "r102", name: "Rethinking Drinking (NIAAA)", site: "rethinkingdrinking.niaaa.nih.gov", category: "Patient Education", url: "https://www.rethinkingdrinking.niaaa.nih.gov/", conditions: [], description: "NIH-NIAAA tools to assess drinking patterns and plan changes — calculators, strategies, and treatment options." },
+    { id: "r103", name: "Sleep Foundation — Health Library", site: "sleepfoundation.org", category: "Patient Education", url: "https://www.sleepfoundation.org/", conditions: [], description: "Evidence-based sleep-health guides, sleep-tracking tips, and information on sleep disorders." },
+
+    /* Insurance / navigation */
+    { id: "r104", name: "Healthcare.gov", site: "healthcare.gov", category: "Patient Education", url: "https://www.healthcare.gov/", conditions: [], description: "U.S. Health Insurance Marketplace — compare plans, check subsidy eligibility, and enroll during open enrollment." },
+    { id: "r105", name: "Medicare.gov Plan Finder", site: "medicare.gov/plan-compare", category: "Patient Education", url: "https://www.medicare.gov/plan-compare/", conditions: [], description: "Official tool to compare Medicare Advantage and Part D drug plans by cost, coverage, and pharmacy network." },
+    { id: "r106", name: "Triage Cancer (insurance for any chronic dx)", site: "triagecancer.org", category: "Patient Education", url: "https://triagecancer.org/legalresources", conditions: [], description: "Plain-language guides on health insurance, disability, work-leave, and legal rights — applicable far beyond cancer." },
+
+    /* Podcasts and YouTube channels */
+    { id: "r107", name: "RheumNow Podcast", site: "rheumnow.com/podcast", category: "Patient Education", url: "https://rheumnow.com/podcast", conditions: ["Rheumatoid Arthritis", "Systemic Lupus Erythematosus"], description: "Weekly clinician-led podcast covering the latest research in lupus, RA, and other rheumatic diseases." },
+    { id: "r108", name: "Diabetes Connections (Stacey Simms)", site: "diabetes-connections.com", category: "Patient Education", url: "https://diabetes-connections.com/", conditions: ["Type 1 Diabetes Mellitus"], description: "Weekly podcast for people living with type 1 diabetes — devices, research, and personal stories." },
+    { id: "r109", name: "Lung Health Podcast (ALA)", site: "lung.org/podcasts", category: "Patient Education", url: "https://www.lung.org/podcasts", conditions: ["Asthma", "Chronic Obstructive Pulmonary Disease"], description: "American Lung Association podcast covering asthma, COPD, lung-cancer screening, and clean-air advocacy." },
+    { id: "r110", name: "Migraine World Summit Talks (YouTube)", site: "youtube.com/@MigraineWorldSummit", category: "Patient Education", url: "https://www.youtube.com/@MigraineWorldSummit", conditions: ["Migraine"], description: "Free expert interview library from the annual Migraine World Summit — preventives, acute care, and lifestyle." },
+    { id: "r111", name: "Aaron Boster MD (MS YouTube)", site: "youtube.com/@AaronBosterMD", category: "Patient Education", url: "https://www.youtube.com/@AaronBosterMD", conditions: ["Multiple Sclerosis"], description: "MS neurologist's free patient-education channel — DMTs, symptoms, lifestyle, and live Q&A." },
+
+    /* Specialist finders + telemedicine */
+    { id: "r112", name: "ACR — Find a Rheumatologist", site: "rheumatology.org/i-am-a/patient-caregiver/find-a-rheumatologist", category: "Specialist Finder", url: "https://rheumatology.org/i-am-a/patient-caregiver/find-a-rheumatologist", conditions: ["Systemic Lupus Erythematosus", "Rheumatoid Arthritis"], description: "Official ACR directory of board-certified rheumatologists in the US, searchable by ZIP code." },
+    { id: "r113", name: "ADA — Find a Diabetes Educator", site: "diabeteseducator.org/living-with-diabetes/find-an-educator", category: "Specialist Finder", url: "https://www.diabeteseducator.org/living-with-diabetes/find-an-education-program", conditions: ["Type 1 Diabetes Mellitus", "Type 2 Diabetes Mellitus"], description: "Locator for accredited diabetes self-management education programs across the US." },
+    { id: "r114", name: "AMF — Find a Headache Doctor", site: "americanmigrainefoundation.org/doctor-database", category: "Specialist Finder", url: "https://americanmigrainefoundation.org/doctor-database/", conditions: ["Migraine"], description: "American Migraine Foundation directory of board-certified headache specialists." },
+    { id: "r115", name: "NMSS — Find an MS Doctor", site: "nationalmssociety.org/find-a-doctor", category: "Specialist Finder", url: "https://www.nationalmssociety.org/Resources-Support/Find-Doctors-Resources/Find-Doctors", conditions: ["Multiple Sclerosis"], description: "National MS Society directory of MS-trained neurologists and partners in care." },
+    { id: "r116", name: "Crohn's & Colitis — Find a Doctor", site: "crohnscolitisfoundation.org/find-doctor", category: "Specialist Finder", url: "https://www.crohnscolitisfoundation.org/find-doctor", conditions: ["Crohn's Disease"], description: "Foundation's directory of IBD-focused gastroenterologists and surgeons." },
   ];
 
   var RESOURCE_CATEGORY_CHIPS = {
     "Nonprofit & Advocacy": "chip-teal",
     "Patient Education": "chip-blue",
     "Financial Aid": "chip-amber",
+    "Peer Community": "chip-violet",
+    "Clinical Guidelines": "chip-teal",
+    "Caregiver Support": "chip-violet",
+    "Mental Health": "chip-amber",
+    "Specialist Finder": "chip-blue",
   };
 
   var resourceList = document.getElementById("resource-list");
@@ -3770,6 +4490,16 @@
   }
 
   var onboardConditionsSearch = document.getElementById("onboard-conditions-search");
+  var onboardSex = document.getElementById("onboard-sex");
+  if (onboardSex) {
+    onboardSex.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-sex]");
+      if (!b) return;
+      onboardSex.querySelectorAll(".pill-btn").forEach(function (p) {
+        p.classList.toggle("on", p === b);
+      });
+    });
+  }
   if (onboarding && onboardConditions) {
     renderConditionPicker(onboardConditions, function () { return false; });
     attachPickerSearch(onboardConditionsSearch, onboardConditions);
@@ -3803,6 +4533,10 @@
       }
       var name = onboardName ? onboardName.value.trim() : "";
       if (name) STORE.set("name", name);
+      if (onboardSex) {
+        var sx = onboardSex.querySelector(".pill-btn.on");
+        if (sx) STORE.set("sex", sx.getAttribute("data-sex"));
+      }
       var selected = [];
       onboardConditions.querySelectorAll(".pill-btn.on").forEach(function (b) {
         selected.push(Number(b.getAttribute("data-cond")));

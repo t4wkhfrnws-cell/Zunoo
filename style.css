@@ -1661,10 +1661,14 @@ h3 {
 .diagram-svg {
   display: block;
   width: 100%;
-  max-width: 360px;
+  max-width: 460px;
   height: auto;
   margin: 0 auto;
+  color: var(--ink-700);
 }
+.diagram-svg text { font-family: inherit; }
+.cond-diagram { color: var(--ink-700); }
+.sex-row .pill-btn { min-width: 96px; }
 .lock-tag {
   background: var(--amber-bg);
   color: var(--amber-text);

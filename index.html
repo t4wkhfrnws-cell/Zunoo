@@ -264,8 +264,23 @@
             <button class="pill-btn" type="button" data-category="Patient Education">
               Patient Education
             </button>
+            <button class="pill-btn" type="button" data-category="Peer Community">
+              Peer Community
+            </button>
+            <button class="pill-btn" type="button" data-category="Clinical Guidelines">
+              Clinical Guidelines
+            </button>
             <button class="pill-btn" type="button" data-category="Financial Aid">
               Financial Aid
+            </button>
+            <button class="pill-btn" type="button" data-category="Mental Health">
+              Mental Health
+            </button>
+            <button class="pill-btn" type="button" data-category="Caregiver Support">
+              Caregiver
+            </button>
+            <button class="pill-btn" type="button" data-category="Specialist Finder">
+              Find a Doctor
             </button>
           </div>
 
@@ -357,6 +372,18 @@
           </p>
           <label class="field-label" for="onboard-name">Your name (optional)</label>
           <input class="input" type="text" id="onboard-name" placeholder="e.g. Alex Morgan" />
+
+          <label class="field-label" style="margin-top: 14px">Sex (optional)</label>
+          <p class="set-about" style="margin: 0 0 8px">
+            Used to tailor questions like pregnancy guidance. Stored on this
+            device only.
+          </p>
+          <div class="chip-row sex-row" id="onboard-sex">
+            <button class="pill-btn" type="button" data-sex="female">Female</button>
+            <button class="pill-btn" type="button" data-sex="male">Male</button>
+            <button class="pill-btn" type="button" data-sex="na">Prefer not to say</button>
+          </div>
+
           <label class="field-label" style="margin-top: 14px">Your condition(s)</label>
           <p class="set-about" style="margin: 0 0 8px">
             Select any conditions you have been diagnosed with. Zuuno will personalize the
