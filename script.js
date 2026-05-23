@@ -1130,7 +1130,7 @@
     if (isUnsafeQuery(text)) return guardrailCard(text);
     if (isGreeting(text)) return greetingCard();
     if (isThanks(text))
-      return plainCard("You&#39;re welcome", [
+      return plainCard("You're welcome", [
         "Glad to help. Ask me anything else about a condition you have.",
       ]);
     if (isHelp(text)) return helpCard();
@@ -2549,9 +2549,16 @@
       showOnboardStep(2);
     });
     consentCheckbox.addEventListener("change", function () {
-      onboardFinish.disabled = !consentCheckbox.checked;
+      var err = document.getElementById("consent-error");
+      if (consentCheckbox.checked && err) err.style.display = "none";
     });
     onboardFinish.addEventListener("click", function () {
+      if (!consentCheckbox.checked) {
+        var err = document.getElementById("consent-error");
+        if (err) err.style.display = "block";
+        consentCheckbox.focus();
+        return;
+      }
       var name = onboardName ? onboardName.value.trim() : "";
       if (name) STORE.set("name", name);
       var selected = [];
