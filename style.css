@@ -1761,3 +1761,64 @@ h3 {
   border-style: solid;
   border-width: 2px;
 }
+
+/* PubMed result card */
+.pubmed-card .pubmed-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 14px 14px;
+  border-top: 1px solid var(--border);
+}
+.pubmed-card .pubmed-item {
+  border-bottom: 1px solid var(--border);
+  padding: 10px 0;
+}
+.pubmed-card .pubmed-item:last-child {
+  border-bottom: none;
+}
+.pubmed-card .pubmed-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+.pubmed-card .pubmed-link:hover .pubmed-title {
+  color: var(--teal-700);
+  text-decoration: underline;
+}
+.pubmed-card .pubmed-title {
+  display: block;
+  color: var(--ink-900);
+  font-weight: 600;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+.pubmed-card .pubmed-authors {
+  display: block;
+  color: var(--ink-500);
+  font-size: 0.82rem;
+  margin-top: 3px;
+}
+.pubmed-card .pubmed-meta {
+  display: block;
+  color: var(--ink-400);
+  font-size: 0.78rem;
+  margin-top: 2px;
+  font-style: italic;
+}
+.pubmed-card .answer-actions {
+  padding: 0 14px 14px;
+}
+.pubmed-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--ink-400);
+  border-top-color: var(--teal-700);
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: -2px;
+  animation: zuuno-spin 0.9s linear infinite;
+}
+@keyframes zuuno-spin {
+  to { transform: rotate(360deg); }
+}

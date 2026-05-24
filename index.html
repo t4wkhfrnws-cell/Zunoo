@@ -373,6 +373,24 @@
           <label class="field-label" for="onboard-name">Your name (optional)</label>
           <input class="input" type="text" id="onboard-name" placeholder="e.g. Alex Morgan" />
 
+          <label class="field-label" style="margin-top: 14px" for="onboard-zip">
+            ZIP / postal code (optional)
+          </label>
+          <p class="set-about" style="margin: 0 0 8px">
+            Used to show real distance to nearby providers, pharmacies, and trial sites.
+            Supports US ZIP and Canadian postal codes.
+          </p>
+          <input
+            class="input"
+            type="text"
+            id="onboard-zip"
+            placeholder="e.g. 90210 or V6B 1A1"
+            inputmode="text"
+            autocomplete="postal-code"
+            spellcheck="false"
+          />
+          <p id="onboard-zip-status" class="set-about" style="margin: 4px 0 0; min-height: 1em"></p>
+
           <label class="field-label" style="margin-top: 14px">Sex (optional)</label>
           <p class="set-about" style="margin: 0 0 8px">
             Used to tailor questions like pregnancy guidance. Stored on this
@@ -472,6 +490,22 @@
           <div class="cond-pick cond-pick-grouped" id="settings-conditions-pick"></div>
 
           <p class="section-label">Location</p>
+          <div class="set-row" style="align-items: flex-start">
+            <div class="set-text" style="flex: 1">
+              <strong>ZIP / postal code</strong>
+              <span id="settings-zip-status">Not set</span>
+              <input
+                class="input"
+                type="text"
+                id="settings-zip"
+                placeholder="e.g. 90210 or V6B 1A1"
+                inputmode="text"
+                autocomplete="postal-code"
+                spellcheck="false"
+                style="margin-top: 6px"
+              />
+            </div>
+          </div>
           <div class="set-row">
             <div class="set-text">
               <strong>Use my location</strong>

@@ -91,6 +91,8 @@
       '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5 8.6 10.5"/>',
     copy:
       '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+    book:
+      '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z"/><path d="M9 7h7M9 11h7"/>',
     building:
       '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M9 6h.01M15 6h.01M9 10h.01M15 10h.01M9 14h.01M15 14h.01"/>',
   };
@@ -1565,6 +1567,11 @@
       '">' +
       icon("download") +
       " Download PDF</button>" +
+      '<button class="btn btn-secondary btn-sm" type="button" data-action="pubmed" data-cond="' +
+      idx +
+      '">' +
+      icon("book") +
+      " PubMed</button>" +
       '<button class="btn btn-secondary btn-sm" type="button" data-action="copy" data-cond="' +
       idx +
       '">' +
@@ -2604,6 +2611,147 @@
     ]);
   }
 
+  /* v12 — PubMed search via NCBI E-utilities (free, no key, supports
+     CORS). Resolves to an array of {id, title, authors[], journal,
+     pubdate, doi}. */
+  var PUBMED_TRIGGERS = ["pubmed", "research", "studies", "articles", "papers", "publications", "literature"];
+  function isPubmedQuery(query) {
+    var q = normalize(query);
+    if (!q) return false;
+    for (var i = 0; i < PUBMED_TRIGGERS.length; i++) {
+      var w = PUBMED_TRIGGERS[i];
+      if (q === w) return true;
+      if (q.indexOf(w + " ") === 0) return true;
+      if (q.indexOf(" " + w + " ") !== -1 && /\b(on|about|for|of|regarding)\s+/.test(q)) return true;
+    }
+    return false;
+  }
+  function extractPubmedTerm(query) {
+    var q = String(query).trim();
+    var stripped = q.replace(
+      /^(latest |recent |find |show |give me |get |i want )?(pubmed|research|studies?|articles?|papers?|publications?|literature)(\s+(on|about|for|of|regarding))?\s*/i,
+      "",
+    ).trim();
+    if (!stripped && activeCondition) return activeCondition.name;
+    return stripped;
+  }
+  function pubmedSearch(term, max) {
+    max = max || 8;
+    var esearch = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi" +
+      "?db=pubmed&retmode=json&retmax=" + max + "&sort=relevance" +
+      "&term=" + encodeURIComponent(term);
+    return fetch(esearch).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function (data) {
+      var ids = (data && data.esearchresult && data.esearchresult.idlist) || [];
+      if (!ids.length) return [];
+      var esummary = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi" +
+        "?db=pubmed&retmode=json&id=" + ids.join(",");
+      return fetch(esummary).then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      }).then(function (data2) {
+        var res = data2 && data2.result;
+        if (!res) return [];
+        var out = [];
+        for (var i = 0; i < ids.length; i++) {
+          var it = res[ids[i]];
+          if (!it) continue;
+          var doi = "";
+          var artids = it.articleids || [];
+          for (var a = 0; a < artids.length; a++) {
+            if (artids[a].idtype === "doi") { doi = artids[a].value; break; }
+          }
+          out.push({
+            id: ids[i],
+            title: it.title || "(no title)",
+            authors: (it.authors || []).map(function (au) { return au.name; }),
+            journal: it.fulljournalname || it.source || "",
+            pubdate: it.pubdate || "",
+            doi: doi,
+          });
+        }
+        return out;
+      });
+    });
+  }
+  function pubmedLoadingCard(term) {
+    return (
+      '<article class="answer-card pubmed-card pubmed-loading">' +
+      '<div class="answer-head">' +
+      '<div class="answer-title-row"><h2>Searching PubMed</h2>' +
+      '<span class="chip chip-blue">' + escapeHtml(term) + '</span></div>' +
+      '<p class="answer-summary"><span class="pubmed-spinner"></span>' +
+      'Looking up recent published articles on PubMed…</p>' +
+      "</div></article>"
+    );
+  }
+  function pubmedNeedTermCard() {
+    return plainCard("PubMed search needs a topic", [
+      "Try &ldquo;pubmed lupus&rdquo;, &ldquo;research on rheumatoid arthritis treatment&rdquo;, or &ldquo;studies on type 2 diabetes genetics&rdquo;.",
+      "You can also pick a condition first, then say &ldquo;pubmed&rdquo; on its own.",
+    ]);
+  }
+  function pubmedErrorCard(term) {
+    var manual = "https://pubmed.ncbi.nlm.nih.gov/?term=" + encodeURIComponent(term);
+    return (
+      '<article class="answer-card pubmed-card">' +
+      '<div class="answer-head" style="border-bottom:none">' +
+      '<div class="answer-title-row"><h2>Couldn’t reach PubMed</h2></div>' +
+      '<p class="answer-summary">PubMed didn’t respond. You can search directly: ' +
+      '<a href="' + escapeHtml(manual) + '" target="_blank" rel="noopener noreferrer" class="cite-link">' +
+      'pubmed.ncbi.nlm.nih.gov &rsaquo;</a></p>' +
+      '</div></article>'
+    );
+  }
+  function pubmedResultsCard(term, articles) {
+    if (!articles.length) {
+      var manual = "https://pubmed.ncbi.nlm.nih.gov/?term=" + encodeURIComponent(term);
+      return (
+        '<article class="answer-card pubmed-card">' +
+        '<div class="answer-head" style="border-bottom:none">' +
+        '<div class="answer-title-row"><h2>No matching PubMed articles</h2>' +
+        '<span class="chip chip-blue">' + escapeHtml(term) + '</span></div>' +
+        '<p class="answer-summary">No published articles found for that search. ' +
+        '<a href="' + escapeHtml(manual) + '" target="_blank" rel="noopener noreferrer" class="cite-link">' +
+        'Try on pubmed.ncbi.nlm.nih.gov &rsaquo;</a></p>' +
+        '</div></article>'
+      );
+    }
+    var items = "";
+    for (var i = 0; i < articles.length; i++) {
+      var a = articles[i];
+      var authors = a.authors.slice(0, 3).join(", ");
+      if (a.authors.length > 3) authors += ", et al.";
+      var year = "";
+      var ym = /\d{4}/.exec(a.pubdate);
+      if (ym) year = ym[0];
+      var meta = [a.journal, year].filter(Boolean).join(" · ");
+      var url = "https://pubmed.ncbi.nlm.nih.gov/" + encodeURIComponent(a.id) + "/";
+      items +=
+        '<li class="pubmed-item">' +
+        '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" class="pubmed-link">' +
+        '<span class="pubmed-title">' + escapeHtml(a.title) + '</span>' +
+        (authors ? '<span class="pubmed-authors">' + escapeHtml(authors) + '</span>' : '') +
+        (meta ? '<span class="pubmed-meta">' + escapeHtml(meta) + '</span>' : '') +
+        '</a></li>';
+    }
+    var manualUrl = "https://pubmed.ncbi.nlm.nih.gov/?term=" + encodeURIComponent(term);
+    return (
+      '<article class="answer-card pubmed-card">' +
+      '<div class="answer-head">' +
+      '<div class="answer-title-row"><h2>PubMed: ' + escapeHtml(term) + '</h2>' +
+      '<span class="chip chip-blue">' + articles.length + ' result' + (articles.length === 1 ? '' : 's') + '</span></div>' +
+      '<p class="answer-summary">Recent published articles from PubMed. Tap any title to read on pubmed.ncbi.nlm.nih.gov.</p>' +
+      '</div>' +
+      '<ul class="pubmed-list">' + items + '</ul>' +
+      '<div class="answer-actions">' +
+      '<a class="btn btn-secondary btn-sm" href="' + escapeHtml(manualUrl) + '" target="_blank" rel="noopener noreferrer">All results on PubMed &rsaquo;</a>' +
+      '</div></article>'
+    );
+  }
+
   function respondTo(text) {
     if (isCrisis(text)) return crisisCard();
     if (isUnsafeQuery(text)) return guardrailCard(text);
@@ -2681,6 +2829,39 @@
 
     window.setTimeout(function () {
       typingEl.remove();
+      if (isPubmedQuery(text)) {
+        var term = extractPubmedTerm(text);
+        if (!term) {
+          var blank = pubmedNeedTermCard();
+          chatStream.insertAdjacentHTML("beforeend", blank);
+          rememberExchange(text, blank);
+          return;
+        }
+        var loadingHtml = pubmedLoadingCard(term);
+        chatStream.insertAdjacentHTML("beforeend", loadingHtml);
+        var loadingCard = chatStream.lastElementChild;
+        rememberExchange(text, loadingHtml);
+        pubmedSearch(term).then(
+          function (articles) {
+            var resultsHtml = pubmedResultsCard(term, articles);
+            if (loadingCard && loadingCard.parentNode) {
+              var wrap = document.createElement("div");
+              wrap.innerHTML = resultsHtml;
+              var newEl = wrap.firstElementChild;
+              loadingCard.parentNode.replaceChild(newEl, loadingCard);
+            }
+          },
+          function () {
+            var errHtml = pubmedErrorCard(term);
+            if (loadingCard && loadingCard.parentNode) {
+              var wrap2 = document.createElement("div");
+              wrap2.innerHTML = errHtml;
+              loadingCard.parentNode.replaceChild(wrap2.firstElementChild, loadingCard);
+            }
+          },
+        );
+        return;
+      }
       var html = respondTo(text);
       chatStream.insertAdjacentHTML("beforeend", html);
       var newCard = chatStream.lastElementChild;
@@ -2862,6 +3043,7 @@
         if (act === "pdf" && cond) downloadPdf(cond);
         else if (act === "share" && cond) shareCondition(cond, actionBtn);
         else if (act === "copy" && cond) copyCondition(cond, actionBtn);
+        else if (act === "pubmed" && cond) sendMessage("pubmed " + cond.name);
         else if (act === "premium-prompt") openModal(premiumModal);
         return;
       }
@@ -4172,6 +4354,8 @@
   }
 
   function refreshSettings() {
+    if (typeof refreshZipStatus === "function") refreshZipStatus();
+    if (typeof refreshLocationToggle === "function") refreshLocationToggle();
     if (!contrastToggle) return;
     contrastToggle.textContent = a11y.contrast === "high" ? "On" : "Off";
     contrastToggle.classList.toggle("on", a11y.contrast === "high");
@@ -4302,9 +4486,13 @@
     locationToggle.classList.toggle("on", on);
     if (locationSub) {
       if (on) {
-        locationSub.textContent =
-          "Using your location · " +
-          userLocation.lat.toFixed(2) + ", " + userLocation.lng.toFixed(2);
+        if (userLocation.source === "zip" && userLocation.place) {
+          locationSub.textContent = "Using ZIP location · " + userLocation.place;
+        } else {
+          locationSub.textContent =
+            "Using your location · " +
+            userLocation.lat.toFixed(2) + ", " + userLocation.lng.toFixed(2);
+        }
       } else {
         locationSub.textContent = "Sort providers and pharmacies by real distance from you";
       }
@@ -4355,6 +4543,37 @@
   }
   refreshLocationToggle();
 
+  var settingsZipInput = document.getElementById("settings-zip");
+  if (settingsZipInput) {
+    refreshZipStatus();
+    var zipDebounce = null;
+    settingsZipInput.addEventListener("input", function () {
+      var status = document.getElementById("settings-zip-status");
+      if (zipDebounce) window.clearTimeout(zipDebounce);
+      var raw = settingsZipInput.value.trim();
+      if (!raw) {
+        zipDebounce = window.setTimeout(function () {
+          if (userLocation && userLocation.source === "zip") {
+            userLocation = { on: false, lat: null, lng: null };
+            STORE.set("location", userLocation);
+            refreshLocationToggle();
+          }
+          if (status) status.textContent = "Not set";
+        }, 500);
+        return;
+      }
+      if (status) status.textContent = "Looking up…";
+      zipDebounce = window.setTimeout(function () {
+        geocodeZip(raw).then(
+          function (loc) { applyZipLocation(loc); },
+          function () {
+            if (status) status.textContent = "Not recognized — try a US ZIP or Canadian postal code";
+          },
+        );
+      }, 500);
+    });
+  }
+
   /* Haversine distance in miles between two lat/lng pairs. */
   function haversineMiles(lat1, lng1, lat2, lng2) {
     if (lat1 == null || lng1 == null || lat2 == null || lng2 == null) return null;
@@ -4374,6 +4593,72 @@
     }
     if (typeof item.distanceMi === "number") return item.distanceMi;
     return null;
+  }
+
+  /* v12 — ZIP / postal-code geocoding via the free, no-auth
+     Zippopotam.us API. Supports US (5-digit) and Canadian (first 3
+     chars of postal code, e.g. "V6B"). On success the user's location
+     is set just as the geolocation toggle would. */
+  function detectZipCountry(zipRaw) {
+    var z = String(zipRaw || "").toUpperCase().trim();
+    if (/^\d{5}(-\d{4})?$/.test(z)) return { country: "us", code: z.slice(0, 5) };
+    var clean = z.replace(/\s+/g, "");
+    if (/^[A-Z]\d[A-Z]\d[A-Z]\d$/.test(clean)) {
+      return { country: "ca", code: clean.slice(0, 3) };
+    }
+    if (/^[A-Z]\d[A-Z]$/.test(clean)) return { country: "ca", code: clean };
+    return null;
+  }
+  function geocodeZip(zipRaw) {
+    var parsed = detectZipCountry(zipRaw);
+    if (!parsed) {
+      return Promise.reject(new Error("invalid"));
+    }
+    var url = "https://api.zippopotam.us/" + parsed.country + "/" + encodeURIComponent(parsed.code);
+    return fetch(url).then(function (res) {
+      if (!res.ok) throw new Error("not found");
+      return res.json();
+    }).then(function (data) {
+      var places = data && data.places;
+      if (!places || !places.length) throw new Error("not found");
+      var p = places[0];
+      return {
+        zip: zipRaw.toUpperCase().trim(),
+        country: parsed.country.toUpperCase(),
+        lat: Number(p.latitude),
+        lng: Number(p.longitude),
+        place: p["place name"] + ", " + (p["state abbreviation"] || p.state || ""),
+      };
+    });
+  }
+  function applyZipLocation(loc) {
+    userLocation = {
+      on: true,
+      lat: loc.lat,
+      lng: loc.lng,
+      zip: loc.zip,
+      place: loc.place,
+      source: "zip",
+    };
+    STORE.set("location", userLocation);
+    refreshLocationToggle();
+    refreshZipStatus();
+    if (typeof renderProviders === "function") renderProviders();
+    if (typeof renderPharmacies === "function") renderPharmacies();
+  }
+  function refreshZipStatus() {
+    var status = document.getElementById("settings-zip-status");
+    var input = document.getElementById("settings-zip");
+    if (status) {
+      if (userLocation && userLocation.zip) {
+        status.textContent = userLocation.zip + " · " + (userLocation.place || "");
+      } else {
+        status.textContent = "Not set";
+      }
+    }
+    if (input && userLocation && userLocation.zip && input.value === "") {
+      input.value = userLocation.zip;
+    }
   }
 
   /* Edit-your-conditions picker inside Settings */
@@ -4511,6 +4796,29 @@
   }
 
   var onboardConditionsSearch = document.getElementById("onboard-conditions-search");
+  var onboardZip = document.getElementById("onboard-zip");
+  var onboardZipStatus = document.getElementById("onboard-zip-status");
+  if (onboardZip && onboardZipStatus) {
+    var onboardZipDebounce = null;
+    onboardZip.addEventListener("input", function () {
+      if (onboardZipDebounce) window.clearTimeout(onboardZipDebounce);
+      var raw = onboardZip.value.trim();
+      if (!raw) { onboardZipStatus.textContent = ""; return; }
+      onboardZipStatus.textContent = "Looking up…";
+      onboardZipDebounce = window.setTimeout(function () {
+        geocodeZip(raw).then(
+          function (loc) {
+            onboardZipStatus.textContent = "✓ " + loc.place;
+            onboardZipStatus.style.color = "var(--teal-700)";
+          },
+          function () {
+            onboardZipStatus.textContent = "Not recognized — we'll skip this if you continue";
+            onboardZipStatus.style.color = "";
+          },
+        );
+      }, 500);
+    });
+  }
   var onboardSex = document.getElementById("onboard-sex");
   if (onboardSex) {
     onboardSex.addEventListener("click", function (e) {
@@ -4557,6 +4865,14 @@
       if (onboardSex) {
         var sx = onboardSex.querySelector(".pill-btn.on");
         if (sx) STORE.set("sex", sx.getAttribute("data-sex"));
+      }
+      var onboardZipInput = document.getElementById("onboard-zip");
+      var zipVal = onboardZipInput ? onboardZipInput.value.trim() : "";
+      if (zipVal) {
+        geocodeZip(zipVal).then(
+          function (loc) { applyZipLocation(loc); },
+          function () { /* ignore — user can fix in Settings */ },
+        );
       }
       var selected = [];
       onboardConditions.querySelectorAll(".pill-btn.on").forEach(function (b) {
