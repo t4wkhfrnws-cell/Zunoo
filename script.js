@@ -2299,9 +2299,21 @@
       "show that again",
     ]);
   }
+  function mostRecentRealExchange() {
+    /* respondTo() runs before rememberExchange() for the current turn,
+       so the latest stored entry IS the user's most recent prior turn.
+       Skip history-echo entries so repeated "previous answer" / "what
+       did I say" queries don't loop back on themselves. */
+    for (var i = CHAT_HISTORY.length - 1; i >= 0; i--) {
+      if (CHAT_HISTORY[i].html.indexOf("history-echo") === -1) {
+        return CHAT_HISTORY[i];
+      }
+    }
+    return null;
+  }
   function historyEchoCard(role) {
+    var prev = mostRecentRealExchange();
     if (role === "assistant") {
-      var prev = priorAssistantHtml();
       if (!prev) {
         return plainCard("Nothing earlier to repeat", [
           "I don&#39;t have a previous answer to show yet. Ask me something and I&#39;ll respond.",
@@ -2311,17 +2323,26 @@
         '<article class="answer-card history-echo">' +
         '<p class="followup-label" style="margin:14px 14px 0">Your previous answer</p>' +
         '<div style="padding:0 14px 14px">' +
-        prev +
+        prev.html +
         "</div></article>"
       );
     }
-    var prevU = priorUserMessage();
-    if (!prevU) {
-      return plainCard("Nothing earlier to show", [
-        "I don&#39;t have a previous question on file yet.",
-      ]);
+    if (!prev) {
+      return (
+        '<article class="answer-card history-echo">' +
+        '<div class="answer-head" style="border-bottom:none">' +
+        '<div class="answer-title-row"><h2>Nothing earlier to show</h2></div>' +
+        '<p class="answer-summary">I don&#39;t have a previous question on file yet.</p>' +
+        '</div></article>'
+      );
     }
-    return plainCard("You just asked", ['&ldquo;' + escapeHtml(prevU) + '&rdquo;']);
+    return (
+      '<article class="answer-card history-echo">' +
+      '<div class="answer-head" style="border-bottom:none">' +
+      '<div class="answer-title-row"><h2>You just asked</h2></div>' +
+      '<p class="answer-summary">&ldquo;' + escapeHtml(prev.user) + '&rdquo;</p>' +
+      '</div></article>'
+    );
   }
 
   /* Compare two conditions side by side. */
