@@ -185,6 +185,7 @@
     if (targetId === "screen-trials") {
       maybeAutoSearchTrials();
     }
+    if (typeof maybeShowTip === "function") maybeShowTip(targetId);
   }
 
   tabs.forEach(function (tab) {
@@ -4909,6 +4910,55 @@
   }
 
   /* ========================================================
+     13.4 PER-TAB TIP BARS
+     A one-liner per tab the first time a user lands on it. Each is
+     dismissible and the dismissal persists. Reset via "Replay guided
+     tour" in Settings.
+     ======================================================== */
+  var TIP_BY_SCREEN = {
+    "screen-chatbot":
+      "Try “pubmed asthma” to pull live published research, or “compare lupus and RA” for a side-by-side card.",
+    "screen-providers":
+      "Set a ZIP code in Settings → Location to sort providers by real distance from you.",
+    "screen-pharmacy":
+      "Use the type filter to narrow down to specialty pharmacies or infusion centres.",
+    "screen-trials":
+      "Filter by country to focus the live ClinicalTrials.gov results on your region.",
+    "screen-resources":
+      "Filter by category — Peer Community, Clinical Guidelines, and Mental Health all have curated picks.",
+  };
+  var dismissedTips = STORE.get("tipsDismissed", {});
+  function maybeShowTip(screenId) {
+    if (dismissedTips[screenId]) return;
+    var text = TIP_BY_SCREEN[screenId];
+    if (!text) return;
+    var screen = document.getElementById(screenId);
+    if (!screen || screen.querySelector(".tab-tip")) return;
+    var bar = document.createElement("div");
+    bar.className = "tab-tip";
+    bar.innerHTML =
+      '<span class="tab-tip-icon" aria-hidden="true">\u{1F4A1}</span>' +
+      '<span class="tab-tip-text"><strong>Tip.</strong> ' + escapeHtml(text) + "</span>" +
+      '<button type="button" class="tab-tip-close" aria-label="Dismiss tip">×</button>';
+    bar.querySelector(".tab-tip-close").addEventListener("click", function () {
+      dismissedTips[screenId] = true;
+      STORE.set("tipsDismissed", dismissedTips);
+      bar.remove();
+    });
+    var head = screen.querySelector(".screen-head");
+    if (head && head.nextSibling) head.parentNode.insertBefore(bar, head.nextSibling);
+    else if (head) head.parentNode.appendChild(bar);
+    else screen.insertBefore(bar, screen.firstChild);
+  }
+  function resetAllTips() {
+    dismissedTips = {};
+    STORE.set("tipsDismissed", dismissedTips);
+    document.querySelectorAll(".tab-tip").forEach(function (b) { b.remove(); });
+    var active = document.querySelector(".screen.active");
+    if (active) maybeShowTip(active.id);
+  }
+
+  /* ========================================================
      13.5 GUIDED TOUR
      ======================================================== */
   var TOUR_STEPS = [
@@ -5007,6 +5057,7 @@
   if (replayTourBtn) {
     replayTourBtn.addEventListener("click", function () {
       closeModal(settingsModal);
+      resetAllTips();
       window.setTimeout(startTour, 250);
     });
   }
