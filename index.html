@@ -562,6 +562,15 @@
           </div>
           <div class="set-row">
             <div class="set-text">
+              <strong>Replay guided tour</strong>
+              <span>Take the 5-step tour of Zuuno again</span>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="replay-tour-btn" type="button">
+              Show tour
+            </button>
+          </div>
+          <div class="set-row">
+            <div class="set-text">
               <strong>Log out</strong>
               <span>Sign out and return to the welcome screen</span>
             </div>
@@ -624,6 +633,21 @@
         <div class="modal-foot">
           <button class="btn btn-secondary" type="button" data-close-modal>Maybe later</button>
           <button class="btn btn-primary" id="premium-action" type="button">Start Premium</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ GUIDED TOUR ============ -->
+    <div class="tour" id="tour" aria-hidden="true">
+      <div class="tour-card" role="dialog" aria-modal="true" aria-label="Guided tour">
+        <p class="tour-step" id="tour-step">Step 1 of 5</p>
+        <h2 id="tour-title">Welcome</h2>
+        <p id="tour-body">A quick tour of Zuuno.</p>
+        <div class="tour-actions">
+          <button class="btn btn-secondary btn-sm" id="tour-skip" type="button">Skip tour</button>
+          <div style="flex: 1"></div>
+          <button class="btn btn-secondary btn-sm" id="tour-back" type="button">Back</button>
+          <button class="btn btn-primary btn-sm" id="tour-next" type="button">Next</button>
         </div>
       </div>
     </div>

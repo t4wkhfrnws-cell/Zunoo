@@ -1822,3 +1822,70 @@ h3 {
 @keyframes zuuno-spin {
   to { transform: rotate(360deg); }
 }
+
+/* v12 — Guided tour */
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(20, 36, 42, 0.55);
+  display: none;
+  align-items: flex-end;
+  padding: 14px;
+  animation: zuuno-fade 0.15s ease-out;
+}
+.tour.open { display: flex; }
+.tour-card {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 16px 14px;
+  position: relative;
+}
+.tour-card h2 {
+  font-size: 1.05rem;
+  margin: 4px 0 6px;
+  color: var(--ink-900);
+}
+.tour-card p#tour-body {
+  color: var(--ink-700);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  margin-bottom: 14px;
+}
+.tour-step {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-400);
+  font-weight: 700;
+}
+.tour-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tour-spot {
+  position: relative;
+  z-index: 101;
+  outline: 3px solid var(--teal-500);
+  outline-offset: 4px;
+  border-radius: 8px;
+  animation: zuuno-pulse 1.4s ease-in-out infinite;
+  transition: outline 0.2s ease;
+}
+@keyframes zuuno-pulse {
+  0%, 100% { outline-color: var(--teal-500); }
+  50% { outline-color: var(--teal-700); }
+}
+@keyframes zuuno-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+:root[data-theme="dark"] .tour {
+  background: rgba(0, 0, 0, 0.7);
+}

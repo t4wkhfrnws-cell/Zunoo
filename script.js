@@ -4803,12 +4803,23 @@
     onboardZip.addEventListener("input", function () {
       if (onboardZipDebounce) window.clearTimeout(onboardZipDebounce);
       var raw = onboardZip.value.trim();
-      if (!raw) { onboardZipStatus.textContent = ""; return; }
+      if (!raw) {
+        onboardZipStatus.textContent = "";
+        if (userLocation && userLocation.source === "zip") {
+          userLocation = { on: false, lat: null, lng: null };
+          STORE.set("location", userLocation);
+        }
+        return;
+      }
       onboardZipStatus.textContent = "Looking up…";
+      onboardZipStatus.style.color = "";
       onboardZipDebounce = window.setTimeout(function () {
         geocodeZip(raw).then(
           function (loc) {
-            onboardZipStatus.textContent = "✓ " + loc.place;
+            /* Persist immediately so it shows up in Settings even if
+               the user takes the rest of onboarding very quickly. */
+            applyZipLocation(loc);
+            onboardZipStatus.textContent = "✓ Saved · " + loc.place;
             onboardZipStatus.style.color = "var(--teal-700)";
           },
           function () {
@@ -4868,7 +4879,11 @@
       }
       var onboardZipInput = document.getElementById("onboard-zip");
       var zipVal = onboardZipInput ? onboardZipInput.value.trim() : "";
-      if (zipVal) {
+      /* Safety net: live validation already saved the location, but
+         if the user typed fast we may not have a result yet. */
+      var savedZipNormalized = (userLocation && userLocation.zip) ? userLocation.zip.replace(/\s+/g, "").toUpperCase() : "";
+      var typedZipNormalized = zipVal.replace(/\s+/g, "").toUpperCase();
+      if (zipVal && savedZipNormalized.indexOf(typedZipNormalized) !== 0) {
         geocodeZip(zipVal).then(
           function (loc) { applyZipLocation(loc); },
           function () { /* ignore — user can fix in Settings */ },
@@ -4886,6 +4901,113 @@
       if (selected.length) {
         setActiveCondition(CONDITIONS[selected[0]]);
       }
+      /* First-time tour after onboarding */
+      if (!STORE.get("tutorialDone", false)) {
+        window.setTimeout(function () { startTour(); }, 350);
+      }
+    });
+  }
+
+  /* ========================================================
+     13.5 GUIDED TOUR
+     ======================================================== */
+  var TOUR_STEPS = [
+    {
+      title: "Welcome to Zuuno",
+      body: "Here's a quick 5-step tour of what Zuuno can do. You can skip anytime and replay it from Settings.",
+      screen: "screen-chatbot",
+      target: null,
+    },
+    {
+      title: "Ask the chatbot anything",
+      body: "Type any medical question in the box at the bottom — try \"symptoms of lupus,\" \"is RA genetic,\" or \"what triggers asthma flares.\" Tap the suggestion chips to explore.",
+      screen: "screen-chatbot",
+      target: "#chat-input",
+    },
+    {
+      title: "Pull live research from PubMed",
+      body: "Type \"pubmed lupus\" or \"research on RA treatment\" and Zuuno pulls the latest published articles directly from PubMed. Every condition answer also has a PubMed button.",
+      screen: "screen-chatbot",
+      target: "#chat-input",
+    },
+    {
+      title: "Five tabs along the bottom",
+      body: "Assistant for the chatbot, Providers to find a doctor, Pharmacy for nearby pharmacies, Trials for live clinical trials from ClinicalTrials.gov, and Resources for trusted nonprofits and guides.",
+      screen: "screen-chatbot",
+      target: "#tabbar",
+    },
+    {
+      title: "Personalize in Settings",
+      body: "Tap the gear icon to change your conditions, set your ZIP code (sorts providers by real distance), turn on dark mode, or sign out. The crown opens Premium.",
+      screen: "screen-chatbot",
+      target: "#settings-btn",
+    },
+  ];
+  var tourEl = document.getElementById("tour");
+  var tourTitleEl = document.getElementById("tour-title");
+  var tourBodyEl = document.getElementById("tour-body");
+  var tourStepEl = document.getElementById("tour-step");
+  var tourSkipBtn = document.getElementById("tour-skip");
+  var tourBackBtn = document.getElementById("tour-back");
+  var tourNextBtn = document.getElementById("tour-next");
+  var tourIndex = 0;
+
+  function clearTourSpot() {
+    var prev = document.querySelectorAll(".tour-spot");
+    for (var i = 0; i < prev.length; i++) prev[i].classList.remove("tour-spot");
+  }
+  function renderTourStep() {
+    if (!tourEl) return;
+    var step = TOUR_STEPS[tourIndex];
+    if (step.screen && typeof showScreen === "function") showScreen(step.screen);
+    clearTourSpot();
+    if (step.target) {
+      var t = document.querySelector(step.target);
+      if (t) {
+        t.classList.add("tour-spot");
+        try { t.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) {}
+      }
+    }
+    tourTitleEl.textContent = step.title;
+    tourBodyEl.textContent = step.body;
+    tourStepEl.textContent = "Step " + (tourIndex + 1) + " of " + TOUR_STEPS.length;
+    tourBackBtn.disabled = tourIndex === 0;
+    tourBackBtn.style.visibility = tourIndex === 0 ? "hidden" : "visible";
+    tourNextBtn.textContent = tourIndex === TOUR_STEPS.length - 1 ? "Done" : "Next";
+  }
+  function startTour() {
+    if (!tourEl) return;
+    tourIndex = 0;
+    tourEl.classList.add("open");
+    tourEl.setAttribute("aria-hidden", "false");
+    renderTourStep();
+  }
+  function endTour() {
+    if (!tourEl) return;
+    clearTourSpot();
+    tourEl.classList.remove("open");
+    tourEl.setAttribute("aria-hidden", "true");
+    STORE.set("tutorialDone", true);
+  }
+  if (tourEl) {
+    tourSkipBtn.addEventListener("click", endTour);
+    tourBackBtn.addEventListener("click", function () {
+      if (tourIndex > 0) { tourIndex--; renderTourStep(); }
+    });
+    tourNextBtn.addEventListener("click", function () {
+      if (tourIndex < TOUR_STEPS.length - 1) {
+        tourIndex++;
+        renderTourStep();
+      } else {
+        endTour();
+      }
+    });
+  }
+  var replayTourBtn = document.getElementById("replay-tour-btn");
+  if (replayTourBtn) {
+    replayTourBtn.addEventListener("click", function () {
+      closeModal(settingsModal);
+      window.setTimeout(startTour, 250);
     });
   }
 
